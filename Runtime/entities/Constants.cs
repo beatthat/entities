@@ -1,4 +1,4 @@
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
 
     public static class Constants

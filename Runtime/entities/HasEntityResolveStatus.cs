@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     public interface HasEntityResolveStatus
 	{

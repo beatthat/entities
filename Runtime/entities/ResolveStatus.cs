@@ -1,6 +1,6 @@
 using System;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     [Serializable]
 	public struct ResolveStatus

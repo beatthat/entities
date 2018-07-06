@@ -3,7 +3,7 @@ using BeatThat.Notifications;
 using UnityEngine;
 
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
 
     public static class ResolveAdviceHelper

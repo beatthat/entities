@@ -11,7 +11,7 @@
     "unity2clone:overwrite": "./node_modules/.bin/unity2clone-overwrite"
   },
   "dependencies": {
-    "entity-stores": "../entity-stores-latest.tgz"
+    "entities": "../entities-latest.tgz"
   },
   "devDependencies": {
     "babel-core": "^5.8.23",

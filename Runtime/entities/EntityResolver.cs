@@ -1,7 +1,7 @@
 using System;
 using BeatThat.Requests;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     /// <summary>
     /// an API capable of loading data for individual entities by an entity 'load key'.

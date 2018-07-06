@@ -2,7 +2,7 @@ using BeatThat.Commands;
 using BeatThat.Notifications;
 using BeatThat.Service;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     /// <summary>
     /// Convenience implementation requires just the DataType as generic parameter.

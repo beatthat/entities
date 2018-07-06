@@ -3,7 +3,7 @@ using BeatThat.Pools;
 using UnityEditor;
 using UnityEngine;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     [CustomEditor(typeof(EntityStore), editorForChildClasses: true)]
     public class EntityStoreEditor : UnityEditor.Editor

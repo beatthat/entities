@@ -3,7 +3,7 @@ using BeatThat.Bindings;
 using BeatThat.Notifications;
 using BeatThat.Requests;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     using N = NotificationBus;
     using Opts = NotificationReceiverOptions;

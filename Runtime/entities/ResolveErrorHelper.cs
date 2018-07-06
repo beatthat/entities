@@ -2,7 +2,7 @@ using BeatThat.Notifications;
 using BeatThat.Requests;
 using UnityEngine;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
 
     public static class ResolveErrorHelper

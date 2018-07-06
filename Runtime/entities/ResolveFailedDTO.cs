@@ -1,7 +1,7 @@
 using System;
 using BeatThat.Requests;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     [Serializable]
 	public struct ResolveFailedDTO

@@ -1,5 +1,5 @@
 {
-  "name": "entity-stores",
+  "name": "entities",
   "scope": "beatthat",
   "version": "1.0.1",
   "description": "framework for accessing entities, an entity being an item of data that has an id and can be resolved by that id",
@@ -18,15 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beatthat/entity-stores.git"
+    "url": "git+https://github.com/beatthat/entities.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/beatthat/entity-stores/issues"
+    "url": "https://github.com/beatthat/entities/issues"
   },
-  "homepage": "https://github.com/beatthat/entity-stores#readme",
+  "homepage": "https://github.com/beatthat/entities#readme",
   "files": [
     "index.js",
     "scripts",

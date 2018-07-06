@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using BeatThat.Bindings;
 using UnityEngine;
 
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     /// <summary>
     /// Non generic base class mainly to enable things like a default Unity editor

@@ -1,4 +1,4 @@
-namespace BeatThat.EntityStores
+namespace BeatThat.Entities
 {
     public interface HasEntities<DataType> : HasEntityData<DataType>, HasEntityResolveStatus
 	{
