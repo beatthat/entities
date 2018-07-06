@@ -1,0 +1,48 @@
+{
+  "name": "entity-stores",
+  "scope": "beatthat",
+  "version": "1.0.0",
+  "description": "framework for accessing entities, an entity being an item of data that has an id and can be resolved by that id",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node scripts/postinstall.js",
+    "preinstall:test": "rm -f *.tgz",
+    "install:test": "npm pack && cp ${npm_package_name}-${npm_package_version}.tgz ${npm_package_name}-latest.tgz && cd test && npm run clean && npm install",
+    "clean": "rm -f *.tgz package-lock.json && cd test && npm run clean",
+    "template:update": "node scripts/template-update.js",
+    "cp:test2src": "cd test && node scripts/cp-test2src.js",
+    "overwrite:test2src": "cd test && node scripts/overwrite-test2src.js",
+    "version": "git add -A",
+    "postversion": "git push && git push --tags && npm run clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beatthat/entity-stores.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beatthat/entity-stores/issues"
+  },
+  "homepage": "https://github.com/beatthat/entity-stores#readme",
+  "files": [
+    "index.js",
+    "scripts",
+    "src",
+    "Runtime",
+    "Samples"
+  ],
+  "dependencies": {
+    "bindings": "github:beatthat/bindings#semver:^1.0.0",
+    "collections-ext": "github:beatthat/collections-ext#semver:^1.0.0",
+    "commands": "github:beatthat/commands#semver:^1.0.0",
+    "notifications": "github:beatthat/notifications#semver:^1.0.0",
+    "path": "^0.12.7",
+    "requests": "github:beatthat/requests#semver:^1.0.0",
+    "services": "github:beatthat/services#semver:^1.0.0",
+    "unity-npm-utils": "github:beatthat/unity-npm-utils#semver:^1.0.0"
+  },
+  "devDependencies": {}
+}
