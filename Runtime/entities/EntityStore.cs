@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using BeatThat.Bindings;
 using UnityEngine;
+using BeatThat.Pools;
 
 namespace BeatThat.Entities
 {
@@ -13,23 +14,63 @@ namespace BeatThat.Entities
     {
         public abstract bool GetResolveStatus(string id, out ResolveStatus status);
         public abstract bool IsResolved(string id);
-        public abstract void GetResolvedIds(ICollection<string> ids);
+        public abstract void GetStoredKeys(ICollection<string> ids);
     }
 
     public class EntityStore<DataType> : EntityStore, HasEntities<DataType>
 	{
         public bool m_debug;
 
-		override protected void BindAll()
+		sealed override protected void BindAll()
 		{
             Bind <ResolveSucceededDTO<DataType>>(Entity<DataType>.RESOLVE_SUCCEEDED, this.OnResolveSucceeded);
             Bind <string>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
             Bind <ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
+            BindEntityStore();
 		}
 
-        override public void GetResolvedIds(ICollection<string> ids)
+        virtual protected void BindEntityStore() {}
+
+        virtual protected void Clear()
+        {
+            using(var ids = ListPool<string>.Get()) {
+                GetStoredKeys(ids);
+                foreach(var i in ids) {
+                    try
+                    {
+                        Entity<DataType>.WillUnload(i);
+                    }
+                    catch (Exception e)
+                    {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                        Debug.LogError("Error on will unload " + i + ":" + e.Message);
+#endif
+                    }
+                }
+
+                m_idByKey.Clear();
+                m_entitiesById.Clear();
+
+                foreach (var i in ids)
+                {
+                    try
+                    {
+                        Entity<DataType>.Updated(i);
+                    }
+                    catch (Exception e)
+                    {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                        Debug.LogError("Error on will unload " + i + ":" + e.Message);
+#endif
+                    }
+                }
+            }
+        }
+
+        override public void GetStoredKeys(ICollection<string> ids)
 		{
-            ids.AddRange (m_storedDataById.Keys);
+            ids.AddRange (m_entitiesById.Keys);
+            ids.AddRange(m_idByKey.Keys);
 		}
 
 		override public bool IsResolved(string id)
@@ -75,7 +116,7 @@ namespace BeatThat.Entities
 
             var id = IdForKey(key);
 
-            return m_storedDataById.TryGetValue (id, out d);
+            return m_entitiesById.TryGetValue (id, out d);
 		}
 
         private void OnResolveFailed(ResolveFailedDTO err)
@@ -83,7 +124,7 @@ namespace BeatThat.Entities
             Entity<DataType> entity;
             GetEntity(err.key, out entity);
             entity.status = entity.status.ResolveFailed(err, DateTime.Now);
-            m_storedDataById[err.key] = entity;
+            m_entitiesById[err.key] = entity;
             Entity<DataType>.Updated(err.key);
 		}
 
@@ -92,7 +133,7 @@ namespace BeatThat.Entities
             Entity<DataType> entity;
             GetEntity(key, out entity);
             entity.status = entity.status.ResolveStarted(DateTime.Now);
-            m_storedDataById[key] = entity;
+            m_entitiesById[key] = entity;
             Entity<DataType>.Updated(key);
 		}
 
@@ -110,12 +151,12 @@ namespace BeatThat.Entities
             GetEntity(dto.id, out entity);
             entity.data = dto.data;
             entity.status = entity.status.ResolveSucceeded(DateTime.Now);
-            m_storedDataById[dto.id] = entity;
+            m_entitiesById[dto.id] = entity;
             Entity<DataType>.Updated(dto.id);
 
             if(dto.id != dto.key && !string.IsNullOrEmpty(dto.key)) {
-                m_idByAlias[dto.key] = dto.id;
-                m_storedDataById.Remove(dto.key);
+                m_idByKey[dto.key] = dto.id;
+                m_entitiesById.Remove(dto.key);
                 Entity<DataType>.Updated(dto.key);
             }
 		}
@@ -123,11 +164,11 @@ namespace BeatThat.Entities
         private string IdForKey(string key)
         {
             string id;
-            return m_idByAlias.TryGetValue(key, out id) ? id : key;
+            return m_idByKey.TryGetValue(key, out id) ? id : key;
         }
 
-        private Dictionary<string, string> m_idByAlias = new Dictionary<string, string>();
-        private Dictionary<string, Entity<DataType>> m_storedDataById = new Dictionary<string, Entity<DataType>> ();
+        private Dictionary<string, string> m_idByKey = new Dictionary<string, string>();
+        private Dictionary<string, Entity<DataType>> m_entitiesById = new Dictionary<string, Entity<DataType>> ();
 	}
 
 }

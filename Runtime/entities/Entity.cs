@@ -37,6 +37,12 @@ namespace BeatThat.Entities
             N.Send(RESOLVE_FAILED, dto, opts);
         }
 
+        public static readonly string WILL_UNLOAD = typeof(DataType).FullName + "_WILL_UNLOAD";
+        public static void WillUnload(string id, Opts opts = Opts.RequireReceiver)
+        {
+            N.Send(WILL_UNLOAD, id, opts);
+        }
+
         public static readonly string UPDATED = typeof(DataType).FullName + "_UPDATED";
         public static void Updated(string id, Opts opts = Opts.DontRequireReceiver)
         {
@@ -47,7 +53,7 @@ namespace BeatThat.Entities
         /// Allows you to request an entity (from the store) and get a callback when load succeeds or fails.
         /// If the entity is not initially loaded, sends the usual notifications and then listens for updates
         /// </summary>
-        public static Request<DataType> GetOne(
+        public static Request<DataType> Resolve(
             string loadKey, 
             HasEntities<DataType> store, 
             Action<Request<DataType>> callback)

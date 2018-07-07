@@ -45,7 +45,7 @@ namespace BeatThat.Entities
 
             Entity<DataType>.ResolveStarted (key);
 
-            this.resolver.GetOne(key, (r =>
+            this.resolver.Resolve(key, (r =>
             {
                 if (ResolveErrorHelper.HandledError(key, r, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
                 {

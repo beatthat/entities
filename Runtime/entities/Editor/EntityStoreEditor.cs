@@ -39,7 +39,7 @@ namespace BeatThat.Entities
             var model = this.target as EntityStore;
 
             using (var storedIds = ListPool<string>.Get ()) {
-                model.GetResolvedIds (storedIds);
+                model.GetStoredKeys (storedIds);
 
 				var defaultColor = GUI.color;
 
