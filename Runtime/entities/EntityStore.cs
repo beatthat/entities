@@ -14,7 +14,8 @@ namespace BeatThat.Entities
     {
         public abstract bool GetResolveStatus(string id, out ResolveStatus status);
         public abstract bool IsResolved(string id);
-        public abstract void GetStoredKeys(ICollection<string> ids);
+        public abstract void GetStoredIds(ICollection<string> ids);
+        public abstract void GetAllStoredKeys(ICollection<string> keys);
     }
 
     public class EntityStore<DataType> : EntityStore, HasEntities<DataType>
@@ -34,7 +35,7 @@ namespace BeatThat.Entities
         virtual protected void Clear()
         {
             using(var ids = ListPool<string>.Get()) {
-                GetStoredKeys(ids);
+                GetAllStoredKeys(ids);
                 foreach(var i in ids) {
                     try
                     {
@@ -67,11 +68,17 @@ namespace BeatThat.Entities
             }
         }
 
-        override public void GetStoredKeys(ICollection<string> ids)
+        override public void GetAllStoredKeys(ICollection<string> ids)
 		{
-            ids.AddRange (m_entitiesById.Keys);
+            GetStoredIds(ids);
             ids.AddRange(m_idByKey.Keys);
 		}
+
+
+        override public void GetStoredIds(ICollection<string> ids)
+        {
+            ids.AddRange(m_entitiesById.Keys);
+        }
 
 		override public bool IsResolved(string id)
 		{
@@ -119,13 +126,18 @@ namespace BeatThat.Entities
             return m_entitiesById.TryGetValue (id, out d);
 		}
 
+        protected void UpdateEntity(string id, ref Entity<DataType> entity)
+        {
+            m_entitiesById[id] = entity;
+            Entity<DataType>.Updated(id);
+        }
+
         private void OnResolveFailed(ResolveFailedDTO err)
 		{
             Entity<DataType> entity;
             GetEntity(err.key, out entity);
             entity.status = entity.status.ResolveFailed(err, DateTime.Now);
-            m_entitiesById[err.key] = entity;
-            Entity<DataType>.Updated(err.key);
+            UpdateEntity(err.key, ref entity);
 		}
 
         private void OnResolveStarted(string key)
@@ -133,8 +145,7 @@ namespace BeatThat.Entities
             Entity<DataType> entity;
             GetEntity(key, out entity);
             entity.status = entity.status.ResolveStarted(DateTime.Now);
-            m_entitiesById[key] = entity;
-            Entity<DataType>.Updated(key);
+            UpdateEntity(key, ref entity);
 		}
 
         private void OnResolveSucceeded(ResolveSucceededDTO<DataType> dto)
@@ -151,8 +162,8 @@ namespace BeatThat.Entities
             GetEntity(dto.id, out entity);
             entity.data = dto.data;
             entity.status = entity.status.ResolveSucceeded(DateTime.Now);
-            m_entitiesById[dto.id] = entity;
-            Entity<DataType>.Updated(dto.id);
+
+            UpdateEntity(dto.id, ref entity);
 
             if(dto.id != dto.key && !string.IsNullOrEmpty(dto.key)) {
                 m_idByKey[dto.key] = dto.id;

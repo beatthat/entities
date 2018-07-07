@@ -14,9 +14,14 @@ namespace BeatThat.Entities
         public ResolveStatus status;
 
         public static readonly string RESOLVE_REQUESTED = typeof(DataType).FullName + "_RESOLVE_REQUESTED";
-        public static void ResolveRequested(string id, Opts opts = Opts.RequireReceiver)
+        public static void ResolveRequested(string key, Opts opts = Opts.RequireReceiver)
         {
-            N.Send(RESOLVE_REQUESTED, id, opts);
+            ResolveRequested(new ResolveRequestDTO { key = key }, opts);
+        }
+
+        public static void ResolveRequested(ResolveRequestDTO dto, Opts opts = Opts.RequireReceiver)
+        {
+            N.Send(RESOLVE_REQUESTED, dto, opts);
         }
 
         public static readonly string RESOLVE_STARTED = typeof(DataType).FullName + "_RESOLVE_STARTED";

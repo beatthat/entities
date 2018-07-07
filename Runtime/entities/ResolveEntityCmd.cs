@@ -23,7 +23,7 @@ namespace BeatThat.Entities
     /// <summary>
     /// Generic command to resolve a single entity by a key (id, alias, or uri)
     /// </summary>
-    public class ResolveEntityCmd<DataType, StoreType, ResolverType> : NotificationCommandBase<string>
+    public class ResolveEntityCmd<DataType, StoreType, ResolverType> : NotificationCommandBase<ResolveRequestDTO>
         where StoreType : HasEntities<DataType>
         where ResolverType : EntityResolver<DataType>
 	{
@@ -34,14 +34,19 @@ namespace BeatThat.Entities
 
         public override string notificationType { get { return Entity<DataType>.RESOLVE_REQUESTED; } }
 
-        public override void Execute (string key)
+        public override void Execute (ResolveRequestDTO dto)
 		{
-            switch(ResolveAdviceHelper.AdviseOnAndSendErrorIfCoolingDown (key, hasData, Entity<DataType>.RESOLVE_FAILED, debug: m_debug)) {
-                case ResolveAdvice.PROCEED:
-                    break;
-                default:
-                    return;
-			}
+            var key = dto.key;
+
+            if(!dto.forceUpdate) {
+                switch (ResolveAdviceHelper.AdviseOnAndSendErrorIfCoolingDown(key, hasData, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
+                {
+                    case ResolveAdvice.PROCEED:
+                        break;
+                    default:
+                        return;
+                }
+            }
 
             Entity<DataType>.ResolveStarted (key);
 

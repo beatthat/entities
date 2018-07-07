@@ -8,7 +8,9 @@ namespace BeatThat.Entities
 
         bool GetResolveStatus(string id, out ResolveStatus loadStatus);
 
-        void GetStoredKeys(ICollection<string> keys);
+        void GetAllStoredKeys(ICollection<string> keys);
+
+        void GetStoredIds(ICollection<string> ids);
 	}
 }
 
