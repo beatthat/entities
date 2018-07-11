@@ -14,12 +14,12 @@ namespace BeatThat.Entities
         public ResolveStatus status;
 
         public static readonly string RESOLVE_REQUESTED = typeof(DataType).FullName + "_RESOLVE_REQUESTED";
-        public static void ResolveRequested(string key, Opts opts = Opts.RequireReceiver)
+        public static void RequestResolve(string key, Opts opts = Opts.RequireReceiver)
         {
-            ResolveRequested(new ResolveRequestDTO { key = key }, opts);
+            RequestResolve(new ResolveRequestDTO { key = key }, opts);
         }
 
-        public static void ResolveRequested(ResolveRequestDTO dto, Opts opts = Opts.RequireReceiver)
+        public static void RequestResolve(ResolveRequestDTO dto, Opts opts = Opts.RequireReceiver)
         {
             N.Send(RESOLVE_REQUESTED, dto, opts);
         }
@@ -91,7 +91,7 @@ namespace BeatThat.Entities
 
                 CleanupBinding();
                 this.storeBinding = N.Add<string>(UPDATED, this.OnStoreUpdate);
-                Entity<DataType>.ResolveRequested(loadKey);
+                Entity<DataType>.RequestResolve(loadKey);
             }
 
             private bool TryComplete()
