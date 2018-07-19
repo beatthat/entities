@@ -23,8 +23,9 @@ namespace BeatThat.Entities
         public bool m_debug;
 
 		sealed override protected void BindAll()
-		{
-            Bind <ResolveSucceededDTO<DataType>>(Entity<DataType>.RESOLVE_SUCCEEDED, this.OnResolveSucceeded);
+        {
+            Bind<ResolveSucceededDTO<DataType>>(Entity<DataType>.RESOLVE_SUCCEEDED, this.OnResolveSucceeded);
+            Bind <ResolvedMultipleDTO<DataType>>(Entity<DataType>.RESOLVED_MULTIPLE, this.OnResolvedMultiple);
             Bind <string>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
             Bind <ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
             BindEntityStore();
@@ -148,12 +149,29 @@ namespace BeatThat.Entities
             UpdateEntity(key, ref entity);
 		}
 
+        private void OnResolvedMultiple(ResolvedMultipleDTO<DataType> dto)
+        {
+            foreach(var entity in dto.entities) {
+                try
+                {
+                    OnResolveSucceeded(entity);
+                }
+                catch (Exception e)
+                {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                    Debug.LogError("Error on process entity: " + e.Message);
+#endif
+                }
+            }    
+        }
+
         private void OnResolveSucceeded(ResolveSucceededDTO<DataType> dto)
 		{
             if (string.IsNullOrEmpty(dto.id))
             {
 #if UNITY_EDITOR || DEBUG_UNSTRIP
-                Debug.LogWarning("[" + Time.frameCount + "] null or empty id");
+                Debug.LogWarning("[" + Time.frameCount + "] null or empty id in resolve for "
+                                 + typeof(DataType).Name + ": " + JsonUtility.ToJson(dto));
 #endif
                 return;
             }

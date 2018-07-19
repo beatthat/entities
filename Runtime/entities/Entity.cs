@@ -36,6 +36,12 @@ namespace BeatThat.Entities
             N.Send(RESOLVE_SUCCEEDED, dto, opts);
         }
 
+        public static readonly string RESOLVED_MULTIPLE = typeof(DataType).FullName + "_RESOLVED_MULTIPLE";
+        public static void ResolvedMultiple(ResolvedMultipleDTO<DataType> dto, Opts opts = Opts.RequireReceiver)
+        {
+            N.Send(RESOLVED_MULTIPLE, dto, opts);
+        }
+
         public static readonly string RESOLVE_FAILED = typeof(DataType).FullName + "_RESOLVE_FAILED";
         public static void ResolveFailed(ResolveFailedDTO dto, Opts opts = Opts.RequireReceiver)
         {
