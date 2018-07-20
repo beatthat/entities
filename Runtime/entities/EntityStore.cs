@@ -35,38 +35,10 @@ namespace BeatThat.Entities
 
         virtual protected void Clear()
         {
-            using(var ids = ListPool<string>.Get()) {
-                GetAllStoredKeys(ids);
-                foreach(var i in ids) {
-                    try
-                    {
-                        Entity<DataType>.WillUnload(i);
-                    }
-                    catch (Exception e)
-                    {
-#if UNITY_EDITOR || DEBUG_UNSTRIP
-                        Debug.LogError("Error on will unload " + i + ":" + e.Message);
-#endif
-                    }
-                }
-
-                m_idByKey.Clear();
-                m_entitiesById.Clear();
-
-                foreach (var i in ids)
-                {
-                    try
-                    {
-                        Entity<DataType>.Updated(i);
-                    }
-                    catch (Exception e)
-                    {
-#if UNITY_EDITOR || DEBUG_UNSTRIP
-                        Debug.LogError("Error on will unload " + i + ":" + e.Message);
-#endif
-                    }
-                }
-            }
+            Entity<DataType>.WillUnloadAll();
+            m_idByKey.Clear();
+            m_entitiesById.Clear();
+            Entity<DataType>.DidUnloadAll();
         }
 
         override public void GetAllStoredKeys(ICollection<string> ids)
@@ -201,7 +173,7 @@ namespace BeatThat.Entities
 
             if (sendEvents)
             {
-                Entity<DataType>.WillUnload(id);
+                Entity<DataType>.WillRemove(id);
             }
 
             using(var key2IdMappings = ListPool<KeyValuePair<string, string>>.Get(m_idByKey)) {
@@ -212,9 +184,10 @@ namespace BeatThat.Entities
                 }
             }
 
-            if (!m_entitiesById.Remove(id))
+            m_entitiesById.Remove(id);
+            if (sendEvents)
             {
-                return;
+                Entity<DataType>.DidRemove(id);
             }
         }
 

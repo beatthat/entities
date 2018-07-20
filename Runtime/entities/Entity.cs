@@ -48,10 +48,29 @@ namespace BeatThat.Entities
             N.Send(RESOLVE_FAILED, dto, opts);
         }
 
-        public static readonly string WILL_UNLOAD = typeof(DataType).FullName + "_WILL_UNLOAD";
-        public static void WillUnload(string id, Opts opts = Opts.DontRequireReceiver)
+        public static readonly string WILL_REMOVE = typeof(DataType).FullName + "_WILL_REMOVE";
+        public static void WillRemove(string id, Opts opts = Opts.DontRequireReceiver)
         {
-            N.Send(WILL_UNLOAD, id, opts);
+            N.Send(WILL_REMOVE, id, opts);
+        }
+
+        public static readonly string DID_REMOVE = typeof(DataType).FullName + "_DID_REMOVE";
+        public static void DidRemove(string id, Opts opts = Opts.DontRequireReceiver)
+        {
+            N.Send(DID_REMOVE, id, opts);
+        }
+
+
+        public static readonly string WILL_UNLOAD_ALL = typeof(DataType).FullName + "_WILL_UNLOAD_ALL";
+        public static void WillUnloadAll(Opts opts = Opts.DontRequireReceiver)
+        {
+            N.Send(WILL_UNLOAD_ALL, opts);
+        }
+
+        public static readonly string DID_UNLOAD_ALL = typeof(DataType).FullName + "_DID_UNLOAD_ALL";
+        public static void DidUnloadAll(Opts opts = Opts.DontRequireReceiver)
+        {
+            N.Send(DID_UNLOAD_ALL, opts);
         }
 
         public static readonly string UPDATED = typeof(DataType).FullName + "_UPDATED";
