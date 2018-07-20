@@ -127,10 +127,12 @@ namespace BeatThat.Entities
             return m_entitiesById.TryGetValue (id, out d);
 		}
 
-        protected void UpdateEntity(string id, ref Entity<DataType> entity)
+        protected void UpdateEntity(string id, ref Entity<DataType> entity, bool sendUpdate = true)
         {
             m_entitiesById[id] = entity;
-            Entity<DataType>.Updated(id);
+            if(sendUpdate) {
+                Entity<DataType>.Updated(id);
+            }
         }
 
         private void OnResolveFailed(ResolveFailedDTO err)
@@ -190,10 +192,43 @@ namespace BeatThat.Entities
             }
 		}
 
+        protected void Remove(string id, bool sendEvents = true)
+        {
+            DataType data;
+            if(!GetData(id, out data)) {
+                return;
+            }
+
+            if (sendEvents)
+            {
+                Entity<DataType>.WillUnload(id);
+            }
+
+            using(var key2IdMappings = ListPool<KeyValuePair<string, string>>.Get(m_idByKey)) {
+                foreach(var key2Id in key2IdMappings){
+                    if(key2Id.Value == id) {
+                        m_idByKey.Remove(key2Id.Key);
+                    }
+                }
+            }
+
+            if (!m_entitiesById.Remove(id))
+            {
+                return;
+            }
+        }
+
         private string IdForKey(string key)
         {
             string id;
             return m_idByKey.TryGetValue(key, out id) ? id : key;
+        }
+
+        public int count { get { return m_entitiesById.Count; } }
+
+        protected void GetAll(ICollection<Entity<DataType>> result)
+        {
+            result.AddRange(m_entitiesById.Values);
         }
 
         private Dictionary<string, string> m_idByKey = new Dictionary<string, string>();

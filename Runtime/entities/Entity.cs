@@ -49,7 +49,7 @@ namespace BeatThat.Entities
         }
 
         public static readonly string WILL_UNLOAD = typeof(DataType).FullName + "_WILL_UNLOAD";
-        public static void WillUnload(string id, Opts opts = Opts.RequireReceiver)
+        public static void WillUnload(string id, Opts opts = Opts.DontRequireReceiver)
         {
             N.Send(WILL_UNLOAD, id, opts);
         }
