@@ -135,7 +135,7 @@ namespace BeatThat.Entities
             }
         }
 
-        private void OnResolveFailed(ResolveFailedDTO err)
+        virtual protected void OnResolveFailed(ResolveFailedDTO err)
 		{
             Entity<DataType> entity;
             GetEntity(err.key, out entity);
@@ -143,7 +143,7 @@ namespace BeatThat.Entities
             UpdateEntity(err.key, ref entity);
 		}
 
-        private void OnResolveStarted(string key)
+        virtual protected void OnResolveStarted(string key)
 		{
             Entity<DataType> entity;
             GetEntity(key, out entity);
@@ -151,7 +151,7 @@ namespace BeatThat.Entities
             UpdateEntity(key, ref entity);
 		}
 
-        private void OnResolvedMultiple(ResolvedMultipleDTO<DataType> dto)
+        virtual protected void OnResolvedMultiple(ResolvedMultipleDTO<DataType> dto)
         {
             foreach(var entity in dto.entities) {
                 try
@@ -167,7 +167,7 @@ namespace BeatThat.Entities
             }    
         }
 
-        private void OnResolveSucceeded(ResolveSucceededDTO<DataType> dto)
+        virtual protected void OnResolveSucceeded(ResolveSucceededDTO<DataType> dto)
 		{
             if (string.IsNullOrEmpty(dto.id))
             {
