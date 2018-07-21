@@ -164,7 +164,7 @@ namespace BeatThat.Entities
             }
 		}
 
-        protected void Remove(string id, bool sendEvents = true)
+        virtual protected void Remove(string id, bool sendEvents = true)
         {
             DataType data;
             if(!GetData(id, out data)) {
