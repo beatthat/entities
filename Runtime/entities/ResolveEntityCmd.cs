@@ -1,6 +1,6 @@
 using BeatThat.Commands;
 using BeatThat.Notifications;
-using BeatThat.Service;
+using BeatThat.DependencyInjection;
 
 namespace BeatThat.Entities
 {

@@ -40,7 +40,9 @@
     "scripts",
     "src",
     "Runtime",
-    "Samples"
+    "Samples",
+    "README.md",
+    "readmefiles"
   ],
   "dependencies": {
     "bindings": "github:beatthat/bindings#semver:^1.0.0",
