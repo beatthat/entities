@@ -1,12 +1,12 @@
 using System;
-
+using System.Collections.Generic;
 
 namespace BeatThat.Entities
 {
     [Serializable]
 	public struct ResolvedMultipleDTO<DataType>
 	{
-        public ResolveSucceededDTO<DataType>[] entities;
+        public IEnumerable<ResolveSucceededDTO<DataType>> entities;
 	}
 }
 

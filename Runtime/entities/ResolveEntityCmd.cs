@@ -80,7 +80,7 @@ namespace BeatThat.Entities
 
         virtual protected bool IsOk(string status) 
         {
-            return status == Constants.STATUS_OK;
+            return status == ResolveStatusCode.OK;
         }
 	}
 }
