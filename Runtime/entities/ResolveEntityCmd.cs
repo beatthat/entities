@@ -72,7 +72,9 @@ namespace BeatThat.Entities
                     new ResolveSucceededDTO<DataType> {
                     key = key,
                     id = resultItem.id,
-                    data = resultItem.data
+                    data = resultItem.data,
+                    timestamp = resultItem.timestamp,
+                    maxAgeSecs = resultItem.maxAgeSecs
                 });
 			}));
 

@@ -153,7 +153,7 @@ namespace BeatThat.Entities
             Entity<DataType> entity;
             GetEntity(dto.id, out entity);
             entity.data = dto.data;
-            entity.status = entity.status.ResolveSucceeded(DateTime.Now);
+            entity.status = entity.status.ResolveSucceeded(dto.timestamp, DateTime.Now, dto.maxAgeSecs);
 
             UpdateEntity(dto.id, ref entity);
 

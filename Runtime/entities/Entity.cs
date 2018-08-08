@@ -79,6 +79,7 @@ namespace BeatThat.Entities
             N.Send(UPDATED, id, opts);
         }
 
+
         /// <summary>
         /// Allows you to request an entity (from the store) and get a callback when load succeeds or fails.
         /// If the entity is not initially loaded, sends the usual notifications and then listens for updates

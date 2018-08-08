@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace BeatThat.Entities
 {
@@ -7,40 +8,61 @@ namespace BeatThat.Entities
 	{
 		public bool hasResolved;
 		public bool isResolveInProgress;
-		public DateTime resolveStartedAt;
 		public DateTime updatedAt;
+		public DateTime timestamp;
 		public string resolveError;
+        public float maxAgeSecs;
 
+        public bool IsExpiredAt(DateTime time)
+        {
+            if(!this.hasResolved) {
+                return true;
+            }
+
+            if(this.maxAgeSecs < 0f) {
+                return false;
+            }
+
+            if(Mathf.Approximately(this.maxAgeSecs, 0f)) {
+                return true;
+            }
+
+            return timestamp.AddSeconds(this.maxAgeSecs) < time;
+        }
+        
 		public ResolveStatus ResolveFailed(ResolveFailedDTO dto, DateTime updateTime)
 		{
 			return new ResolveStatus {
-				hasResolved = this.hasResolved,
 				isResolveInProgress = false,
-				resolveStartedAt = this.resolveStartedAt,
-				updatedAt = updateTime,
-                resolveError = dto.errorMessage
+                updatedAt = updateTime,
+                resolveError = dto.errorMessage,
+                hasResolved = this.hasResolved,
+                timestamp = this.timestamp,
+                maxAgeSecs = this.maxAgeSecs,
 			};
 		}
 
 		public ResolveStatus ResolveStarted(DateTime updateTime)
 		{
 			return new ResolveStatus {
-				hasResolved = this.hasResolved,
-				isResolveInProgress = true,
-				resolveStartedAt = updateTime,
-				updatedAt = this.updatedAt,
+                isResolveInProgress = true,
+                updatedAt = updateTime,
+                hasResolved = this.hasResolved,
+                timestamp = this.timestamp,
+                maxAgeSecs = this.maxAgeSecs,
 				resolveError = this.resolveError
 			};
 		}
 
-		public ResolveStatus ResolveSucceeded(DateTime updateTime)
+		public ResolveStatus ResolveSucceeded(DateTime timestamp, DateTime updateTime, float maxAgeSecs)
 		{
 			return new ResolveStatus {
 				hasResolved = true,
 				isResolveInProgress = false,
-				resolveStartedAt = updateTime,
 				updatedAt = updateTime,
-				resolveError = this.resolveError
+                timestamp = timestamp,
+				resolveError = this.resolveError,
+                maxAgeSecs = maxAgeSecs
 			};
 		}
 	}
