@@ -11,7 +11,7 @@ namespace BeatThat.Entities
 		public DateTime updatedAt;
 		public DateTime timestamp;
 		public string resolveError;
-        public float maxAgeSecs;
+        public int maxAgeSecs;
 
         public bool IsExpiredAt(DateTime time)
         {
@@ -54,7 +54,7 @@ namespace BeatThat.Entities
 			};
 		}
 
-		public ResolveStatus ResolveSucceeded(DateTime timestamp, DateTime updateTime, float maxAgeSecs)
+		public ResolveStatus ResolveSucceeded(DateTime timestamp, DateTime updateTime, int maxAgeSecs)
 		{
 			return new ResolveStatus {
 				hasResolved = true,
