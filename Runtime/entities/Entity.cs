@@ -89,6 +89,12 @@ namespace BeatThat.Entities
             HasEntities<DataType> store, 
             Action<Request<DataType>> callback)
         {
+            if(string.IsNullOrEmpty(loadKey)) {
+                var err = new LocalRequest<DataType>("Load key cannot be null or empty");
+                err.Execute(callback);
+                return err;
+            }
+
             var r = new EntityRequest(loadKey, store);
             r.Execute(callback);
             return r;
@@ -111,6 +117,11 @@ namespace BeatThat.Entities
 
             protected override void ExecuteRequest()
             {
+                if(string.IsNullOrEmpty(this.loadKey)) {
+                    CompleteWithError("load key cannot be null or empty");
+                    return;
+                }
+
                 if(TryComplete()) {
                     return;
                 }

@@ -21,6 +21,7 @@ namespace BeatThat.Entities
     public class EntityStore<DataType> : EntityStore, HasEntities<DataType>
 	{
         public bool m_debug;
+        virtual protected bool debug { get { return m_debug; } }
 
 		sealed override protected void BindAll()
         {
@@ -85,6 +86,12 @@ namespace BeatThat.Entities
 
         public bool GetEntity(string key, out Entity<DataType> d)
 		{
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+            if(this.debug) {
+                Debug.Log("[" + Time.frameCount + "] " + GetType() + "::GetEntity " + key);
+            }
+#endif
+
             if (string.IsNullOrEmpty(key))
             {
 #if UNITY_EDITOR || DEBUG_UNSTRIP
