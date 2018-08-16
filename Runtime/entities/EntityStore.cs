@@ -29,17 +29,24 @@ namespace BeatThat.Entities
             Bind <ResolvedMultipleDTO<DataType>>(Entity<DataType>.RESOLVED_MULTIPLE, this.OnResolvedMultiple);
             Bind <string>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
             Bind <ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
+            Bind<bool>(Entity<DataType>.UNLOAD_ALL_REQUESTED, this.Clear);
             BindEntityStore();
 		}
 
         virtual protected void BindEntityStore() {}
 
-        virtual protected void Clear()
+        virtual protected void Clear(bool sendNotifications = true)
         {
-            Entity<DataType>.WillUnloadAll();
+            if(sendNotifications) {
+                Entity<DataType>.WillUnloadAll();
+            }
+
             m_idByKey.Clear();
             m_entitiesById.Clear();
-            Entity<DataType>.DidUnloadAll();
+
+            if(sendNotifications) {
+                Entity<DataType>.DidUnloadAll();
+            }
         }
 
         override public void GetAllStoredKeys(ICollection<string> ids)

@@ -60,6 +60,11 @@ namespace BeatThat.Entities
             N.Send(DID_REMOVE, id, opts);
         }
 
+        public static readonly string UNLOAD_ALL_REQUESTED = typeof(DataType).FullName + "_UNLOAD_ALL_REQUESTED";
+        public static void RequestUnloadAll(bool sendNotifications = true, Opts opts = Opts.RequireReceiver)
+        {
+            N.Send(UNLOAD_ALL_REQUESTED, sendNotifications, opts);
+        }
 
         public static readonly string WILL_UNLOAD_ALL = typeof(DataType).FullName + "_WILL_UNLOAD_ALL";
         public static void WillUnloadAll(Opts opts = Opts.DontRequireReceiver)
@@ -122,7 +127,7 @@ namespace BeatThat.Entities
                     return;
                 }
 
-                if(TryComplete()) {
+                if(TryComplete(false)) {
                     return;
                 }
 
@@ -131,7 +136,7 @@ namespace BeatThat.Entities
                 Entity<DataType>.RequestResolve(loadKey);
             }
 
-            private bool TryComplete()
+            private bool TryComplete(bool failOnError = true)
             {
                 DataType data;
                 if (this.store.GetData(this.loadKey, out data))
@@ -141,8 +146,21 @@ namespace BeatThat.Entities
                     return true;
                 }
 
+                if(!failOnError) {
+                    return false;
+                }
+
                 ResolveStatus loadStatus;
-                if (store.GetResolveStatus(loadKey, out loadStatus) && !string.IsNullOrEmpty(loadStatus.resolveError))
+                if (!store.GetResolveStatus(loadKey, out loadStatus))
+                {
+                    return false;
+                }
+
+                if(loadStatus.isResolveInProgress) {
+                    return false;
+                } 
+
+                if(!string.IsNullOrEmpty(loadStatus.resolveError))
                 {
                     CompleteWithError(loadStatus.resolveError);
                     return true;
@@ -157,7 +175,7 @@ namespace BeatThat.Entities
                     return;
                 }
 
-                TryComplete();
+                TryComplete(true);
             }
 
             protected override void DisposeRequest()
