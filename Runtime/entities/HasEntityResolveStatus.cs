@@ -11,6 +11,8 @@ namespace BeatThat.Entities
         void GetAllStoredKeys(ICollection<string> keys);
 
         void GetStoredIds(ICollection<string> ids);
+
+        int GetStoredIdCount();
 	}
 }
 

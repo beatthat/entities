@@ -15,6 +15,7 @@ namespace BeatThat.Entities
         public abstract bool GetResolveStatus(string id, out ResolveStatus status);
         public abstract bool IsResolved(string id);
         public abstract void GetStoredIds(ICollection<string> ids);
+        public abstract int GetStoredIdCount();
         public abstract void GetAllStoredKeys(ICollection<string> keys);
     }
 
@@ -55,6 +56,10 @@ namespace BeatThat.Entities
             ids.AddRange(m_idByKey.Keys);
 		}
 
+        override public int GetStoredIdCount()
+        {
+            return m_entitiesById.Count;    
+        }
 
         override public void GetStoredIds(ICollection<string> ids)
         {
