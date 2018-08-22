@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace BeatThat.Entities
 {
@@ -6,6 +7,18 @@ namespace BeatThat.Entities
     public interface HasEntities<DataType> : HasEntityData<DataType>, HasEntityResolveStatus
 	{
         bool GetEntity(string key, out Entity<DataType> d);
+
+        /// <summary>
+        /// Gets all entity data for entities that have resolved /
+        /// objects stored in memory
+        /// </summary>
+        void GetResolved(ICollection<DataType> resolved);
+
+        /// <summary>
+        /// Gets all entity data for entities that have resolved /
+        /// objects stored in memory. Result shape is id=>data
+        /// </summary>
+        void GetResolved(IDictionary<string, DataType> resolved);
 	}
 
     public static class HasEntitiesExt

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using BeatThat.Bindings;
 using BeatThat.Notifications;
+using BeatThat.Pools;
 using BeatThat.Requests;
 
 namespace BeatThat.Entities
@@ -84,7 +86,21 @@ namespace BeatThat.Entities
             N.Send(UPDATED, id, opts);
         }
 
+#if NET_4_6
+        public static async System.Threading.Tasks.Task<DataType> ResolveAsync(
+            string loadKey,
+            HasEntities<DataType> store)
+        {
+            return await Resolve(loadKey, store);
+        }
 
+        public static async System.Threading.Tasks.Task<ResolveMultipleResultDTO<DataType>> ResolveAllAsync(
+            IEnumerable<string> keys,
+            HasEntities<DataType> store)
+        {
+            return await ResolveAll(keys, store);
+        }
+#endif
         /// <summary>
         /// Allows you to request an entity (from the store) and get a callback when load succeeds or fails.
         /// If the entity is not initially loaded, sends the usual notifications and then listens for updates
@@ -92,7 +108,7 @@ namespace BeatThat.Entities
         public static Request<DataType> Resolve(
             string loadKey, 
             HasEntities<DataType> store, 
-            Action<Request<DataType>> callback)
+            Action<Request<DataType>> callback = null)
         {
             if(string.IsNullOrEmpty(loadKey)) {
                 var err = new LocalRequest<DataType>("Load key cannot be null or empty");
@@ -105,6 +121,84 @@ namespace BeatThat.Entities
             return r;
         }
 
+        /// <summary>
+        /// Allows you to request an entity (from the store) and get a callback when load succeeds or fails.
+        /// If the entity is not initially loaded, sends the usual notifications and then listens for updates
+        /// </summary>
+        public static Request<ResolveMultipleResultDTO<DataType>> ResolveAll(
+            IEnumerable<string> keys,
+            HasEntities<DataType> store,
+            Action<Request<ResolveMultipleResultDTO<DataType>>> callback = null)
+        {
+            var promise = new Promise<ResolveMultipleResultDTO<DataType>>((resolve, reject, cancel, attach) =>
+            {
+                var all = new JoinRequests();
+                foreach(var k in keys) {
+                    all.Add(new EntityRequest(k, store));
+                }
+
+                all.Execute(result => {
+                    var allResult = result as JoinRequests;
+
+                    //ResolveResultDTO<DataType> cur;
+
+                    using(var resultRequests = ListPool<Request>.Get())
+                    using(var resultItems = ListPool<ResolveResultDTO<DataType>>.Get()) {
+                        allResult.GetResults(resultRequests);
+                        foreach (var rr in resultRequests)
+                        {
+                            var key = (rr as EntityRequest).loadKey;
+                            if (rr.hasError)
+                            {
+                                resultItems.Add(new ResolveResultDTO<DataType>
+                                {
+                                    id = key,
+                                    key = key,
+                                    status = ResolveStatusCode.ERROR,
+                                    message = rr.error
+                                });
+                                continue;
+                            }
+
+                            Entity<DataType> entity;
+                            if (!store.GetEntity(key, out entity))
+                            {
+                                resultItems.Add(new ResolveResultDTO<DataType>
+                                {
+                                    id = key,
+                                    key = key,
+                                    status = ResolveStatusCode.ERROR,
+                                    message = "enity not in store after resolve"
+                                });
+                                continue;
+                            }
+
+                            var status = entity.status;
+
+                            resultItems.Add(new ResolveResultDTO<DataType>
+                            {
+                                id = key,
+                                key = key,
+                                status = ResolveStatusCode.OK,
+                                data = entity.data,
+                                maxAgeSecs = status.maxAgeSecs,
+                                timestamp = status.timestamp
+                            });
+                        }
+
+                        resolve(new ResolveMultipleResultDTO<DataType>
+                        {
+                            entities = resultItems.ToArray()
+                        });
+                    }
+                });
+            });
+
+            promise.Execute(callback);
+            return promise;
+
+        }
+
         class EntityRequest : RequestBase, Request<DataType>
         {
             public EntityRequest(string loadKey, HasEntities<DataType> store)
@@ -113,6 +207,7 @@ namespace BeatThat.Entities
                 this.loadKey = loadKey;
             }
 
+            public string loadKey { get; private set; }
             public DataType item { get; private set; }
 
             public object GetItem()
@@ -201,7 +296,6 @@ namespace BeatThat.Entities
 
             private Binding storeBinding { get; set; }
             private HasEntities<DataType> store { get; set; }
-            private string loadKey { get; set; }
 
         }
     }

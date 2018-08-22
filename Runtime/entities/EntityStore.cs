@@ -50,6 +50,27 @@ namespace BeatThat.Entities
             }
         }
 
+        public void GetResolved(ICollection<DataType> resolved)
+        {
+            foreach(var e in m_entitiesById.Values) {
+                if(e.status.hasResolved) {
+                    resolved.Add(e.data);
+                }
+            }
+        }
+
+        public void GetResolved(IDictionary<string, DataType> resolved)
+        {
+            foreach (var kv in m_entitiesById)
+            {
+                var e = kv.Value;
+                if (e.status.hasResolved)
+                {
+                    resolved[kv.Key] = e.data;
+                }
+            }
+        }
+
         override public void GetAllStoredKeys(ICollection<string> ids)
 		{
             GetStoredIds(ids);
