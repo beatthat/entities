@@ -140,7 +140,7 @@ namespace BeatThat.Entities
                 all.Execute(result => {
                     var allResult = result as JoinRequests;
 
-                    //ResolveResultDTO<DataType> cur;
+                    ResolveResultDTO<DataType> cur;
 
                     using(var resultRequests = ListPool<Request>.Get())
                     using(var resultItems = ListPool<ResolveResultDTO<DataType>>.Get()) {

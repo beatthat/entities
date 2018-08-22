@@ -8,12 +8,12 @@ namespace BeatThat.Entities
 	{
 		public bool hasResolved;
 		public bool isResolveInProgress;
-		public DateTime updatedAt;
-		public DateTime timestamp;
+		public DateTimeOffset updatedAt;
+		public DateTimeOffset timestamp;
 		public string resolveError;
         public int maxAgeSecs;
 
-        public bool IsExpiredAt(DateTime time)
+        public bool IsExpiredAt(DateTimeOffset time)
         {
             if(!this.hasResolved) {
                 return true;
@@ -30,7 +30,7 @@ namespace BeatThat.Entities
             return timestamp.AddSeconds(this.maxAgeSecs) < time;
         }
         
-		public ResolveStatus ResolveFailed(ResolveFailedDTO dto, DateTime updateTime)
+		public ResolveStatus ResolveFailed(ResolveFailedDTO dto, DateTimeOffset updateTime)
 		{
 			return new ResolveStatus {
 				isResolveInProgress = false,
@@ -42,7 +42,7 @@ namespace BeatThat.Entities
 			};
 		}
 
-		public ResolveStatus ResolveStarted(DateTime updateTime)
+		public ResolveStatus ResolveStarted(DateTimeOffset updateTime)
 		{
 			return new ResolveStatus {
                 isResolveInProgress = true,
@@ -54,7 +54,7 @@ namespace BeatThat.Entities
 			};
 		}
 
-		public ResolveStatus ResolveSucceeded(DateTime timestamp, DateTime updateTime, int maxAgeSecs)
+		public ResolveStatus ResolveSucceeded(DateTimeOffset timestamp, DateTimeOffset updateTime, int maxAgeSecs)
 		{
 			return new ResolveStatus {
 				hasResolved = true,

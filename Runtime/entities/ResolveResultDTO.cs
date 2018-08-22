@@ -11,7 +11,7 @@ namespace BeatThat.Entities
 		public string id;
         public DataType data;
         public int maxAgeSecs;
-        public DateTime timestamp;
+        public DateTimeOffset timestamp;
 	}
 }
 

@@ -41,7 +41,7 @@ namespace BeatThat.Entities
 			ResolveStatus data;
 			hasData.GetResolveStatus (id, out data);
 
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
 
             if(data.hasResolved && !data.IsExpiredAt(now)) {
 				#if UNITY_EDITOR || DEBUG_UNSTRIP
@@ -52,7 +52,7 @@ namespace BeatThat.Entities
 				return ResolveAdvice.CANCEL_RESOLVED_AND_UNEXPIRED;
 			}
 
-			if (data.isResolveInProgress && data.updatedAt.AddSeconds(resolveTimeoutSecs) > DateTime.Now) {
+			if (data.isResolveInProgress && data.updatedAt.AddSeconds(resolveTimeoutSecs) > DateTimeOffset.Now) {
 				#if UNITY_EDITOR || DEBUG_UNSTRIP
 				if(debug) {
 					Debug.Log("[" + Time.frameCount + "] skipping resolve attempt for id '" + id 
@@ -62,7 +62,7 @@ namespace BeatThat.Entities
 				return ResolveAdvice.CANCEL_IN_PROGRESS;
 			}
 
-			if (!string.IsNullOrEmpty(data.resolveError) && data.timestamp.AddSeconds(retryMinIntervalSecs) > DateTime.Now) {
+			if (!string.IsNullOrEmpty(data.resolveError) && data.timestamp.AddSeconds(retryMinIntervalSecs) > DateTimeOffset.Now) {
 				#if UNITY_EDITOR || DEBUG_UNSTRIP
 				if(debug) {
 					Debug.Log("[" + Time.frameCount + "] skipping resolve attempt for id '" + id 

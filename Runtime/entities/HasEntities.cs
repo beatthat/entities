@@ -34,7 +34,7 @@ namespace BeatThat.Entities
             d = entity.data;
 
             var status = entity.status;
-            if(status.IsExpiredAt(DateTime.Now) && !status.isResolveInProgress) {
+            if(status.IsExpiredAt(DateTimeOffset.Now) && !status.isResolveInProgress) {
                 Entity<DataType>.RequestResolve(key);
             }
 

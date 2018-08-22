@@ -61,7 +61,7 @@ namespace BeatThat.Entities
 					if (!string.IsNullOrEmpty (loadStatus.resolveError)) {
                         EditorGUILayout.LabelField ("error", loadStatus.resolveError);
                     } else if (loadStatus.isResolveInProgress) {
-                        EditorGUILayout.LabelField ("loading for ", (DateTime.Now - loadStatus.updatedAt).TotalSeconds + "secs");
+                        EditorGUILayout.LabelField ("loading for ", (DateTimeOffset.Now - loadStatus.updatedAt).TotalSeconds + "secs");
 						GUI.color = PENDING;
 					} else {
                         GUI.color = loadStatus.hasResolved ? defaultColor : NONE;

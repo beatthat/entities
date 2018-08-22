@@ -151,7 +151,7 @@ namespace BeatThat.Entities
 		{
             Entity<DataType> entity;
             GetEntity(err.key, out entity);
-            entity.status = entity.status.ResolveFailed(err, DateTime.Now);
+            entity.status = entity.status.ResolveFailed(err, DateTimeOffset.Now);
             UpdateEntity(err.key, ref entity);
 		}
 
@@ -159,7 +159,7 @@ namespace BeatThat.Entities
 		{
             Entity<DataType> entity;
             GetEntity(key, out entity);
-            entity.status = entity.status.ResolveStarted(DateTime.Now);
+            entity.status = entity.status.ResolveStarted(DateTimeOffset.Now);
             UpdateEntity(key, ref entity);
 		}
 
@@ -193,7 +193,7 @@ namespace BeatThat.Entities
             Entity<DataType> entity;
             GetEntity(dto.id, out entity);
             entity.data = dto.data;
-            entity.status = entity.status.ResolveSucceeded(dto.timestamp, DateTime.Now, dto.maxAgeSecs);
+            entity.status = entity.status.ResolveSucceeded(dto.timestamp, DateTimeOffset.Now, dto.maxAgeSecs);
 
             UpdateEntity(dto.id, ref entity);
 
