@@ -4,10 +4,8 @@ Use entities to manage collections of data that share a common type and where ea
 
 From your unity project folder:
 
-    npm init
-    npm install TEMPLATE --save
-    echo Assets/packages >> .gitignore
-    echo Assets/packages.meta >> .gitignore
+    npm init --force
+    npm install beathat/entities --save
 
 The package and all its dependencies will be installed under Assets/Plugins/packages.
 
@@ -62,7 +60,7 @@ public class DogResolver : EntityResolver<DogData>
     var promise = new Promise((resolve, reject) => {
       //https://api.thedogapi.co.uk/v2/dog.php?id=5ta5p7JdHEL
       var path = string.Format("https://api.thedogapi.co.uk/v2/dog.php?id={0}", loadKey);
-      
+
       new WebRequest<DogData>(path).Execute(result => {
         if(result.hasError) {
           reject(result);

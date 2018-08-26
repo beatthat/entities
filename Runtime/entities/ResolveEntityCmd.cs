@@ -1,6 +1,7 @@
 using BeatThat.Commands;
 using BeatThat.Notifications;
 using BeatThat.DependencyInjection;
+using System;
 
 namespace BeatThat.Entities
 {
@@ -18,7 +19,7 @@ namespace BeatThat.Entities
     ///
     /// </code>
     /// </summary>
-    public class ResolveEntityCmd<DataType> : ResolveEntityCmd<DataType, HasEntities<DataType>, EntityResolver<DataType>> {}
+    public class ResolveEntityCmd<DataType> : ResolveEntityCmd<DataType, HasEntities<DataType>, EntityResolver<DataType>> { }
 
     /// <summary>
     /// Generic command to resolve a single entity by a key (id, alias, or uri)
@@ -26,7 +27,7 @@ namespace BeatThat.Entities
     public class ResolveEntityCmd<DataType, StoreType, ResolverType> : NotificationCommandBase<ResolveRequestDTO>
         where StoreType : HasEntities<DataType>
         where ResolverType : EntityResolver<DataType>
-	{
+    {
         public bool m_debug;
 
         [Inject] private StoreType hasData { get; set; }
@@ -34,11 +35,12 @@ namespace BeatThat.Entities
 
         public override string notificationType { get { return Entity<DataType>.RESOLVE_REQUESTED; } }
 
-        public override void Execute (ResolveRequestDTO dto)
-		{
+        public override void Execute(ResolveRequestDTO dto)
+        {
             var key = dto.key;
 
-            if(!dto.forceUpdate) {
+            if (!dto.forceUpdate)
+            {
                 switch (ResolveAdviceHelper.AdviseOnAndSendErrorIfCoolingDown(key, hasData, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
                 {
                     case ResolveAdvice.PROCEED:
@@ -48,6 +50,52 @@ namespace BeatThat.Entities
                 }
             }
 
+            Resolve(key);
+        }
+
+#if NET_4_6
+        private async void Resolve(string key)
+        {
+            Entity<DataType>.ResolveStarted(key);
+
+            try
+            {
+                var resultItem = await this.resolver.ResolveAsync(key);
+
+                if (!IsOk(resultItem.status))
+                {
+                    NotificationBus.Send(Entity<DataType>.RESOLVE_FAILED, new ResolveFailedDTO
+                    {
+                        key = key,
+                        error = resultItem.status
+                    });
+                    return;
+                }
+
+                Entity<DataType>.ResolveSucceeded(
+                    new ResolveSucceededDTO<DataType>
+                    {
+                        key = key,
+                        id = resultItem.id,
+                        data = resultItem.data,
+                        timestamp = resultItem.timestamp,
+                        maxAgeSecs = resultItem.maxAgeSecs
+                    });
+
+
+            }
+            catch (Exception e)
+            {
+                Entity<DataType>.ResolveFailed(new ResolveFailedDTO
+                {
+                    key = key,
+                    error = e.Message
+                });
+            }
+        }
+#else
+        private void Resolve(string key)
+        {
             Entity<DataType>.ResolveStarted (key);
 
             this.resolver.Resolve(key, (r =>
@@ -77,8 +125,8 @@ namespace BeatThat.Entities
                     maxAgeSecs = resultItem.maxAgeSecs
                 });
 			}));
-
 		}
+#endif
 
         virtual protected bool IsOk(string status) 
         {

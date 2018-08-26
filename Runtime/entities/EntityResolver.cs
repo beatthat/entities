@@ -8,9 +8,13 @@ namespace BeatThat.Entities
     /// The key may be the entity's id, but an alias or a full uri can be accepted
     /// </summary>
     public interface EntityResolver<DataType>
-	{
-        Request<ResolveResultDTO<DataType>> Resolve(string key, Action<Request<ResolveResultDTO<DataType>>> callback);
-	}
+    {
+        Request<ResolveResultDTO<DataType>> Resolve(string key, Action<Request<ResolveResultDTO<DataType>>> callback = null);
+
+#if NET_4_6
+        System.Threading.Tasks.Task<ResolveResultDTO<DataType>> ResolveAsync(string key);
+#endif
+    }
 }
 
 

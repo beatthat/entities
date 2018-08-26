@@ -15,6 +15,7 @@ namespace BeatThat.Entities
         public DataType data;
         public ResolveStatus status;
 
+
         public static readonly string RESOLVE_REQUESTED = typeof(DataType).FullName + "_RESOLVE_REQUESTED";
         public static void RequestResolve(string key, Opts opts = Opts.RequireReceiver)
         {
@@ -87,6 +88,7 @@ namespace BeatThat.Entities
         }
 
 #if NET_4_6
+
         public static async System.Threading.Tasks.Task<DataType> ResolveAsync(
             string loadKey,
             HasEntities<DataType> store)
@@ -140,7 +142,7 @@ namespace BeatThat.Entities
                 all.Execute(result => {
                     var allResult = result as JoinRequests;
 
-                    ResolveResultDTO<DataType> cur;
+                    //ResolveResultDTO<DataType> cur;
 
                     using(var resultRequests = ListPool<Request>.Get())
                     using(var resultItems = ListPool<ResolveResultDTO<DataType>>.Get()) {
