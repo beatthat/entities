@@ -3,10 +3,18 @@ using System;
 using System.Threading.Tasks;
 using BeatThat.Requests;
 using BeatThat.Service;
-using UnityEngine;
 
 namespace BeatThat.Entities.Examples
 {
+
+    /// <summary>
+    /// EntityResolver<T> is the meat of the implementation you need to provide
+    /// in most Entity<T> set ups.
+    /// 
+    /// If you're using NET_4_6 then you can extend EntityResolverService<T>
+    /// and the only implemenation you need to provide 
+    /// is for ResolveAsync, which takes a key and returns an Entity instance as below.
+    /// </summary>
     [RegisterService(typeof(EntityResolver<DogData>))]
     public class DogDataResolver : EntityResolverService<DogData>
     {
@@ -14,15 +22,12 @@ namespace BeatThat.Entities.Examples
         {
             var path = DogAPI.GetDogUrl(key);
 
-            Debug.LogError("path=" + path);
-
             try {
                 
                 // using BeatThat.Requests.WebRequest here, just an easy way 
                 // to make a one-line HTTP request and get a typed result
                 var data = await new WebRequest<DogData>(path).ExecuteAsync();
 
-                Debug.LogError("will return data: " + JsonUtility.ToJson(data));
                 return new ResolveResultDTO<DogData>
                 {
                     key = key,

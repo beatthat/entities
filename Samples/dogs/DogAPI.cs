@@ -9,20 +9,28 @@ namespace BeatThat.Entities.Examples
 
         public static string GetDogUrl(string id)
         {
+            /* Using local file jsons instead of urls for the real dog api 
+             * that the data came from.
+             * 
+             * Public APIs generally require an API KEY 
+             * or otherwise aren't highly available.
+             * 
+             * Using files means the example will always work
+             * as long as the directory for the json files doesn't move.
+             */
             return string.Format("file://{0}/Samples/packages/beatthat/entities/dogs/api-fake/{1}.json", 
                                  Application.dataPath, id);
         }
 
         /// <summary>
-        /// This dog api has a result object with status and then the data
-        /// as a child obj, which is pretty common.
+        /// Ids of the dog data items the fake API can return (locally stored as json files)
         /// </summary>
-        [Serializable]
-        public struct Result
-        {
-            public DogData data;
-            public string error;
-        }
+        public static readonly string[] IDS = {
+            "HkNkxlqEX",
+            "rJFJVxc4m",
+            "SJcCuu2SX",
+            "SyPvYOhHm"
+        };
     }
 }
 
