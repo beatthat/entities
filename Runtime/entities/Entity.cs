@@ -87,6 +87,22 @@ namespace BeatThat.Entities
             N.Send(UPDATED, id, opts);
         }
 
+        public static bool RequestResolveIfExpiredOrUnresolved(string key, HasEntities<DataType> entities)
+        {
+            ResolveStatus status;
+            if(!entities.GetResolveStatus(key, out status)) {
+                RequestResolve(key);
+                return true;
+            }
+
+            if(status.IsExpiredAt(DateTimeOffset.Now)) {
+                RequestResolve(key);
+                return true;
+            }
+
+            return false;
+        }
+
 #if NET_4_6
 
         public static async System.Threading.Tasks.Task<DataType> ResolveAsync(

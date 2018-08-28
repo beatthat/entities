@@ -19,11 +19,11 @@ namespace BeatThat.Entities
                 return true;
             }
 
-            if(this.maxAgeSecs < 0f) {
+            if(this.maxAgeSecs < 0) {
                 return false;
             }
 
-            if(Mathf.Approximately(this.maxAgeSecs, 0f)) {
+            if(this.maxAgeSecs == 0) {
                 return true;
             }
 
