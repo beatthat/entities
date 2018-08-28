@@ -15,7 +15,9 @@ namespace BeatThat.Entities.Examples
     /// and the only implemenation you need to provide 
     /// is for ResolveAsync, which takes a key and returns an Entity instance as below.
     /// </summary>
+#if ENTITY_EXAMPLES_AUTOREGISTER_SERVICES_ENABLED 
     [RegisterService(typeof(EntityResolver<DogData>))]
+#endif
     public class DogDataResolver : EntityResolverService<DogData>
     {
         public override async Task<ResolveResultDTO<DogData>> ResolveAsync(string key)

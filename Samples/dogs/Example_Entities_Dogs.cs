@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BeatThat.DependencyInjection;
 using BeatThat.Service;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace BeatThat.Entities.Examples
 {
@@ -24,6 +21,28 @@ namespace BeatThat.Entities.Examples
         public WebImage m_image;
         public DogDataItemDisplay m_dogItemProto;
         public DogDataItemDisplay[] m_dogItems;
+
+#if !ENTITY_EXAMPLES_AUTOREGISTER_SERVICES_ENABLED
+        override protected void DidAwake()
+        {
+            // The ServiceLoader code is only necessary because attribute-based
+            // registration is disabled for the example.
+            // In your own code, you'd generally just use the attributes/autowiring.
+            // Autowiring is disabled by default for this example, because
+            // when it's enabled those services will register in your real app
+            // where you don't want or need them.
+            ServiceLoader.onAfterSetServiceRegistratonsStatic = (serviceLoader) =>
+            {
+                serviceLoader.Register<DogDataResolver>();
+                serviceLoader.Register<EntityResolver<DogData>, DogDataResolver>();
+                serviceLoader.Register<ResolveDogDataCmd>();
+                serviceLoader.Register<DogDataStore>();
+                serviceLoader.Register<HasEntities<DogData>, DogDataStore>();
+                serviceLoader.Register<HasEntityData<DogData>, DogDataStore>();
+            };
+            base.DidAwake();
+        }
+#endif
 
         override protected void DidStart() 
         {
