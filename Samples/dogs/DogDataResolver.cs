@@ -14,6 +14,9 @@ namespace BeatThat.Entities.Examples
     /// If you're using NET_4_6 then you can extend EntityResolverService<T>
     /// and the only implemenation you need to provide 
     /// is for ResolveAsync, which takes a key and returns an Entity instance as below.
+    /// 
+    /// NOTE: the [RegisterService] attribute below is disabled by default
+    /// to keep this service from auto registering in your app where you don't want it.
     /// </summary>
 #if ENTITY_EXAMPLES_AUTOREGISTER_SERVICES_ENABLED 
     [RegisterService(typeof(EntityResolver<DogData>))]
