@@ -14,6 +14,7 @@ namespace BeatThat.Entities
     {
         public abstract bool GetResolveStatus(string id, out ResolveStatus status);
         public abstract bool IsResolved(string id);
+        public abstract bool IsResolveInProgress(string id);
         public abstract void GetStoredIds(ICollection<string> ids);
         public abstract int GetStoredIdCount();
         public abstract void GetAllStoredKeys(ICollection<string> keys);
@@ -79,7 +80,7 @@ namespace BeatThat.Entities
 
         override public int GetStoredIdCount()
         {
-            return m_entitiesById.Count;    
+            return m_entitiesById.Count;
         }
 
         override public void GetStoredIds(ICollection<string> ids)
@@ -92,7 +93,14 @@ namespace BeatThat.Entities
             ResolveStatus status;
             return GetResolveStatus(id, out status) && status.hasResolved;
 		}
-			
+
+        override public bool IsResolveInProgress(string id)
+		{
+            ResolveStatus status;
+            return GetResolveStatus(id, out status) && status.isResolveInProgress;
+		}
+
+
         override public bool GetResolveStatus (string id, out ResolveStatus status)
 		{
             Entity<DataType> entity;
@@ -104,7 +112,7 @@ namespace BeatThat.Entities
             status = entity.status;
 			return true;
 		}
-			
+
         public bool GetData(string key, out DataType data)
 		{
             Entity<DataType> entity;
@@ -176,7 +184,7 @@ namespace BeatThat.Entities
                     Debug.LogError("Error on process entity: " + e.Message);
 #endif
                 }
-            }    
+            }
         }
 
         virtual protected void OnResolveSucceeded(ResolveSucceededDTO<DataType> dto)
@@ -249,5 +257,3 @@ namespace BeatThat.Entities
 	}
 
 }
-
-

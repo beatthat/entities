@@ -144,7 +144,7 @@ public class MyAppStartup : MonoBehaviour
 }
 ```
 
-Here's how you get an Entity:
+Here's how you get data for an Entity:
 
 ```csharp
 using BeatThat.Service;
@@ -215,6 +215,135 @@ public class Foo : DependencyInjectedBehaviour
       var data = result.item;
       // call your DoSomethingWithDogData function
     });
+  }
+}
+```
+
+Here's how you check whether an Entity's data is available for use.
+
+```csharp
+//HasEntities<DogData> dogs;
+var canUseData = this.dogs.IsResolved(dogId);
+```
+
+...or if you want to know if an entity is in progress loading/resolving
+
+```csharp
+//HasEntities<DogData> dogs;
+var isResolving = this.dogs.IsResolveInProgress(dogId);
+```
+
+...or if you want to inspect an Entity's full resolve status, including possible errors
+
+```csharp
+//HasEntities<DogData> dogs;
+ResolveStatus status;
+if(this.dogs.GetStatus(id, out status)) {
+  // If GetStatus returned FALSE above,
+  // the entity is not resolved and there
+  // has been no attempt to resolve it
+
+  var canUse = status.hasResolved;
+  var isResolvingNow = status.isResolveInProgress;
+  if(status.hasError) {
+    var error = status.error;
+  }
+
+  var shouldRefresh = status.IsExpiredAt(DateTimeOffset.Now);
+}
+```
+
+...or if you want to inspect both the status and the data (which may or may not be available)
+
+```csharp
+//HasEntities<DogData> dogs;
+Entity<DogData> dog;
+if(this.dogs.GetEntity(id, out dog)) {
+  DogData data = dog.data;
+  ResolveStatus status = dog.status;
+}
+```
+
+...here's how you request that an Entity resolve without waiting for it
+
+```csharp
+Entity<DogData>.RequestResolve("some-dog-id");
+```
+
+...and here's how you listen for updates to entity resolve status
+
+```csharp
+// using BeatThat.Notifications
+NotificationBus.Add(Entity<DogData>.Updated, (id) => {
+  // do something with the id that was updated
+})
+```
+
+#### Using Entities with BeatThat helper classes
+
+There are base classes in BeatThat that simplify working with notifications and dependency injection. You don't need to use these classes but they handle a lot of boilerplate for you.
+
+Below are some examples, with and with out the base classes.
+
+...a global singleton service that listens for Entity updates.
+
+```csharp
+using BeatThat.Service;
+using BeatThat.Bindings;
+using BeatThat.DependencyInjection;
+using BeatThat.Entities;
+[RegisterService]
+public class MyDogService : BindingService
+{
+  [Inject] HasEntities<DogData> dogs;
+
+  override protected void BindAll()
+  {
+    Bind(Entity<DogData>.UPDATE, this.OnUpdated);
+  }
+
+  private void OnUpdated(string id)
+  {
+    Entity<DogData> dog;
+    if(!this.dogs.GetEntity(id)) {
+      return;
+    }
+    // do something with this dog
+  }
+}
+```
+
+...you can have the same behavior as above with no special base classes doing something like this:
+
+```csharp
+using BeatThat.Service;
+using BeatThat.Notifications;
+using BeatThat.Entities;
+
+// assume you made this a singleton by
+// your preferred method
+public class MyDogService : MonoBehaviour
+{
+  private HasEntities<DogData> dogs;
+
+  void OnEnable()
+  {
+    this.dogs = Services.Require<HasEntities<DogData>>();
+    NotificationBus.Add(Entity<DogData>.UPDATE, this.OnUpdated);
+  }
+
+  void OnDisable()
+  {
+    NotificationBus.Remove(Entity<DogData>.UPDATE, this.OnUpdated);
+  }
+
+  private void OnUpdated(string id)
+  {
+    Entity<DogData> dog;
+    if(!this.dogs.GetEntity(id)) {
+      return;
+    }
+    // do something with this dog
   }
 }
 ```

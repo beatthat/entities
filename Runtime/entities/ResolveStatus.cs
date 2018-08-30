@@ -11,7 +11,7 @@ namespace BeatThat.Entities
 		public DateTimeOffset updatedAt;
 		public DateTimeOffset timestamp;
 		public string resolveError;
-        public int maxAgeSecs;
+    public int maxAgeSecs;
 
         public bool IsExpiredAt(DateTimeOffset time)
         {
@@ -29,7 +29,7 @@ namespace BeatThat.Entities
 
             return timestamp.AddSeconds(this.maxAgeSecs) < time;
         }
-        
+
 		public ResolveStatus ResolveFailed(ResolveFailedDTO dto, DateTimeOffset updateTime)
 		{
 			return new ResolveStatus {
@@ -67,5 +67,3 @@ namespace BeatThat.Entities
 		}
 	}
 }
-
-
