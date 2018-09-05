@@ -1,4 +1,6 @@
-<a name="readme"></a>Use entities to manage collections of data that share a common type and where each item has a unique id. A common use for entities is to manage a client store of items retrieved via a REST API from a database table or collection.
+<a name="readme"></a>Need to manage a collection of data items, like say, downloadable songs for a music app? Entities make it easy.
+
+You can use entities to manage any collection whose items share a common data type and where each item has a unique id. A common use for entities is to manage a client store of items retrieved via a REST API from a database table or collection.
 
 ## Install
 
