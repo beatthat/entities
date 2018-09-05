@@ -1,4 +1,4 @@
-<a name="readme">/<a>Use entities to manage collections of data that share a common type and where each item has a unique id. A common use for entities is to manage a client store of items retrieved via a REST API from a database table or collection.
+<a name="readme"></a>Use entities to manage collections of data that share a common type and where each item has a unique id. A common use for entities is to manage a client store of items retrieved via a REST API from a database table or collection.
 
 ## Install
 
