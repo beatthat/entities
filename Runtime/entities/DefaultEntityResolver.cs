@@ -62,7 +62,9 @@ namespace BeatThat.Entities
             return r;
         }
 
+#pragma warning disable 1998
         virtual public async Task<ResolveResultDTO<DataType>> ResolveAsync(string key)
+#pragma warning restore 1998
         {
             return GetStoredEntityAsResolveResult(key);
         }
