@@ -167,6 +167,7 @@ namespace BeatThat.Entities
 		{
             Entity<DataType> entity;
             GetEntity(key, out entity);
+            entity.id = (!string.IsNullOrEmpty(entity.id)) ? entity.id : key;
             entity.status = entity.status.ResolveStarted(DateTimeOffset.Now);
             UpdateEntity(key, ref entity);
 		}
@@ -200,6 +201,7 @@ namespace BeatThat.Entities
 
             Entity<DataType> entity;
             GetEntity(dto.id, out entity);
+            entity.id = dto.id;
             entity.data = dto.data;
             entity.status = entity.status.ResolveSucceeded(dto.timestamp, DateTimeOffset.Now, dto.maxAgeSecs);
 

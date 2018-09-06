@@ -11,7 +11,7 @@ namespace BeatThat.Entities
     using Opts = NotificationReceiverOptions;
     public struct Entity<DataType> 
     {
-        
+        public string id;
         public DataType data;
         public ResolveStatus status;
 

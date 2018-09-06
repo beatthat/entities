@@ -21,7 +21,7 @@ namespace BeatThat.Entities.Examples
 #if ENTITY_EXAMPLES_AUTOREGISTER_SERVICES_ENABLED 
     [RegisterService(typeof(EntityResolver<DogData>))]
 #endif
-    public class DogDataResolver : EntityResolverService<DogData>
+    public class DogDataResolver : DefaultEntityResolver<DogData>
     {
         public override async Task<ResolveResultDTO<DogData>> ResolveAsync(string key)
         {
