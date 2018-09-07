@@ -61,7 +61,7 @@ using BeatThat.Requests;
 using BeatThat.Service;
 
 [RegisterService(typeof(EntityResolver<DogData>))]
-public class DogDataResolver : EntityResolverService<DogData>
+public class DogDataResolver : DefaultEntityResolver<DogData>
 {
     public override async Task<ResolveResultDTO<DogData>> ResolveAsync(string key)
     {
@@ -105,7 +105,7 @@ using BeatThat.Requests;
 using BeatThat.Service;
 
 [RegisterService]
-public class DogResolver : EntityResolver<DogData>
+public class DogResolver : DefaultEntityResolver<DogData>
 {
   public Request<ResolveResultDTO<DogData>> Resolve(string loadKey, Action<Request<ResolveResultDTO<GoalData>>> callback)
   {
@@ -180,10 +180,41 @@ public class Foo : DependencyInjectedBehaviour
   {
     DogData data;
     if(!this.dogs.GetData(dogId, out data)) {
-      data = await Entity<DogData>.ResolveAsync(dogId, this.dogs); // could wrap in try/catch to handle web errors etc.
+      try {
+        data = await Entity<DogData>.ResolveOrThrowAsync(dogId, this.dogs);
+      }
+      catch(Exception e) {
+        // the entity was either not found or some other error in resolve
+      }
     }
 
     // do something with dog data
+  }
+}
+```
+
+...here's how you get the same entity if you want to handle failures without exceptions:
+
+```csharp
+using BeatThat.Service;
+using BeatThat.DependencyInjection;
+using BeatThat.Entities;
+public class Foo : DependencyInjectedBehaviour
+{
+  [Inject] HasEntities<DogData> dogs;
+
+  public async void DoSomethingWithDog(string dogId)
+  {
+    DogData data;
+    if(!this.dogs.GetData(dogId, out data)) {
+      var result = await Entity<DogData>.ResolveAsync(dogId, this.dogs);
+      if(!result.status == ResolveStatusCode.OK) {
+        // handle the failure
+        return;
+      }
+
+      data = result.data; // proceed
+    }
   }
 }
 ```

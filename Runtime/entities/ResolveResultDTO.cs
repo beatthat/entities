@@ -12,6 +12,42 @@ namespace BeatThat.Entities
         public DataType data;
         public int maxAgeSecs;
         public DateTimeOffset timestamp;
+
+        public static ResolveResultDTO<DataType> ResolveError(string key, string error)
+        {
+            return new ResolveResultDTO<DataType>
+            {
+                status = ResolveStatusCode.ERROR,
+                message = error,
+                id = key,
+                key = key,
+                timestamp = DateTimeOffset.Now
+            };
+        }
+
+        public static ResolveResultDTO<DataType> ResolveError(string key, Exception error, string message = null)
+        {
+            return new ResolveResultDTO<DataType>
+            {
+                status = ResolveStatusCode.ERROR,
+                message = !string.IsNullOrEmpty(message)? message: error.Message,
+                id = key,
+                key = key,
+                timestamp = DateTimeOffset.Now
+            };
+        }
+
+        public static ResolveResultDTO<DataType> ResolveNotFound(string key)
+        {
+            return new ResolveResultDTO<DataType>
+            {
+                status = ResolveStatusCode.NOT_FOUND,
+                message = "not found",
+                id = key,
+                key = key,
+                timestamp = DateTimeOffset.Now
+            };
+        }
 	}
 }
 

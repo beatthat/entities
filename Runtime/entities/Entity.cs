@@ -104,12 +104,41 @@ namespace BeatThat.Entities
         }
 
 #if NET_4_6
-
-        public static async System.Threading.Tasks.Task<DataType> ResolveAsync(
+        /// <summary>
+        /// Resolve the data for a key from an async method using await.
+        /// NOTE: this will throw an exception if the item cannot be found.
+        /// If you want to handle 'not found' or other errors without exceptions,
+        /// use @see ResolveAsync instead; it returns a ResolveResult<DataType> 
+        /// that would include details on failed resolves.
+        /// </summary>
+        public static async System.Threading.Tasks.Task<DataType> ResolveOrThrowAsync(
             string loadKey,
             HasEntities<DataType> store)
         {
             return await Resolve(loadKey, store);
+        }
+
+        /// <summary>
+        /// Resolve the data and metadata for a key from an async method using await.
+        /// NOTE: this method will return a ResolveResult<DataType> even if the item
+        /// fails to load, e.g. either not found or resolve error.
+        /// Use this version if you want to handle failed responses without try/catch.
+        /// If you'd rather an exception be thrown any time the data isn't available,
+        /// use @see ResolveOrThrowAsync.
+        /// </summary>
+        /// <returns>The async.</returns>
+        public static async System.Threading.Tasks.Task<ResolveResultDTO<DataType>> ResolveAsync(
+            string loadKey,
+            HasEntities<DataType> store)
+        {
+            if (string.IsNullOrEmpty(loadKey))
+            {
+                return ResolveResultDTO<DataType>.ResolveError(loadKey, "Load key cannot be null or empty");
+            }
+
+            var r = new ResolveResultRequest(loadKey, store);
+            await r.ExecuteAsync();
+            return r.item;
         }
 
         public static async System.Threading.Tasks.Task<ResolveMultipleResultDTO<DataType>> ResolveAllAsync(
@@ -134,7 +163,7 @@ namespace BeatThat.Entities
                 return err;
             }
 
-            var r = new EntityRequest(loadKey, store);
+            var r = new DataRequest(loadKey, store);
             r.Execute(callback);
             return r;
         }
@@ -152,7 +181,7 @@ namespace BeatThat.Entities
             {
                 var all = new JoinRequests();
                 foreach(var k in keys) {
-                    all.Add(new EntityRequest(k, store));
+                    all.Add(new DataRequest(k, store));
                 }
 
                 all.Execute(result => {
@@ -165,7 +194,7 @@ namespace BeatThat.Entities
                         allResult.GetResults(resultRequests);
                         foreach (var rr in resultRequests)
                         {
-                            var key = (rr as EntityRequest).loadKey;
+                            var key = (rr as DataRequest).loadKey;
                             if (rr.hasError)
                             {
                                 resultItems.Add(new ResolveResultDTO<DataType>
@@ -217,9 +246,124 @@ namespace BeatThat.Entities
 
         }
 
-        class EntityRequest : RequestBase, Request<DataType>
+        class ResolveResultRequest : RequestBase, Request<ResolveResultDTO<DataType>>
         {
-            public EntityRequest(string loadKey, HasEntities<DataType> store)
+            public ResolveResultRequest(string loadKey, HasEntities<DataType> store)
+            {
+                this.store = store;
+                this.loadKey = loadKey;
+            }
+
+            public string loadKey { get; private set; }
+            public ResolveResultDTO<DataType> item { get; private set; }
+
+            public object GetItem()
+            {
+                return this.item;
+            }
+
+            protected override void ExecuteRequest()
+            {
+                if (string.IsNullOrEmpty(this.loadKey))
+                {
+                    CompleteWithError("load key cannot be null or empty");
+                    return;
+                }
+
+                if (TryComplete(false))
+                {
+                    return;
+                }
+
+                CleanupBinding();
+                this.storeBinding = N.Add<string>(UPDATED, this.OnStoreUpdate);
+                Entity<DataType>.RequestResolve(loadKey);
+            }
+
+            private bool TryComplete(bool completeOnErrorOrNotFound = true)
+            {
+                Entity<DataType> entity;
+                if(!store.GetEntity(this.loadKey, out entity)) {
+                    return false;
+                }
+
+                ResolveStatus resolveStatus = entity.status;
+
+                if(resolveStatus.isResolveInProgress) {
+                    return false;
+                }
+
+                if(resolveStatus.hasResolved) {
+                    item = new ResolveResultDTO<DataType>
+                    {
+                        status = ResolveStatusCode.OK,
+                        id = entity.id,
+                        key = this.loadKey,
+                        data = entity.data,
+                        timestamp = resolveStatus.timestamp,
+                        maxAgeSecs = resolveStatus.maxAgeSecs
+                    };
+                    CompleteRequest();
+                    return true;
+                }
+
+                if (!completeOnErrorOrNotFound)
+                {
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(resolveStatus.resolveError))
+                {
+                    this.item = ResolveResultDTO<DataType>.ResolveError(
+                        this.loadKey, resolveStatus.resolveError);
+                    
+                    CompleteWithError(resolveStatus.resolveError);
+                    return true;
+                }
+
+                this.item = ResolveResultDTO<DataType>.ResolveNotFound(this.loadKey);
+                return true;
+            }
+
+            private void OnStoreUpdate(string id)
+            {
+                if (id != this.loadKey)
+                {
+                    return;
+                }
+
+                TryComplete(true);
+            }
+
+            protected override void DisposeRequest()
+            {
+                CleanupBinding();
+                base.DisposeRequest();
+            }
+
+            protected override void AfterCompletionCallback()
+            {
+                CleanupBinding();
+                base.AfterCompletionCallback();
+            }
+
+            private void CleanupBinding()
+            {
+                if (this.storeBinding != null)
+                {
+                    this.storeBinding.Unbind();
+                    this.storeBinding = null;
+                }
+            }
+
+            private Binding storeBinding { get; set; }
+            private HasEntities<DataType> store { get; set; }
+
+        }
+
+        class DataRequest : RequestBase, Request<DataType>
+        {
+            public DataRequest(string loadKey, HasEntities<DataType> store)
             {
                 this.store = store;
                 this.loadKey = loadKey;

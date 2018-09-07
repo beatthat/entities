@@ -55,7 +55,7 @@ namespace BeatThat.Entities.Examples
                 // But if we're doing a series of resolves, a for loop, etc.
                 // it's much cleaner and more readable 
                 // to use async/await
-                UpdateDisplay(await Entity<DogData>.ResolveAsync(this.id, this.dogs), showDog);
+                UpdateDisplay(await Entity<DogData>.ResolveOrThrowAsync(this.id, this.dogs), showDog);
             }
             catch(Exception e) {
                 Debug.LogError("Failed to load data for id " + this.id + ": " + e.Message);

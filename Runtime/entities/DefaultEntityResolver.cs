@@ -7,15 +7,15 @@ using BeatThat.Service;
 namespace BeatThat.Entities
 {
     /// <summary>
-    /// The default entity resolver just checks the EntityStore 
+    /// The default entity resolver just checks the EntityStore
     /// and returns whatever is already there.
-    /// 
-    /// The more common case is that entites are resolved by, say, 
-    /// making a REST request. 
-    /// 
+    ///
+    /// The more common case is that entites are resolved by, say,
+    /// making a REST request.
+    ///
     /// Even if you're overriding the resolve behaviour,
     /// you may still want to use this base class
-    /// and override ResolveAsync though, 
+    /// and override ResolveAsync though,
     /// to save you from having to write the boilerplate call that
     /// maps pre NET4.6 resolves to the async version of the function.
     /// </summary>
@@ -68,7 +68,7 @@ namespace BeatThat.Entities
         {
             return GetStoredEntityAsResolveResult(key);
         }
-#else 
+#else
         virtual public Request<ResolveResultDTO<DataType>> Resolve(string key, Action<Request<ResolveResultDTO<DataType>>> callback = null)
         {
             var result = GetStoredEntityAsResolveResult(key);
@@ -80,4 +80,3 @@ namespace BeatThat.Entities
 
     }
 }
-
