@@ -13,6 +13,16 @@ namespace BeatThat.Entities
         public int maxAgeSecs;
         public DateTimeOffset timestamp;
 
+        public bool GetData(out DataType data)
+        {
+            if(this.status != ResolveStatusCode.OK) {
+                data = default(DataType);
+                return false;
+            }
+            data = this.data;
+            return true;
+        }
+
         public static ResolveResultDTO<DataType> ResolveError(string key, string error)
         {
             return new ResolveResultDTO<DataType>
