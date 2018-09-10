@@ -147,6 +147,22 @@ namespace BeatThat.Entities
             return m_entitiesById.TryGetValue (id, out d);
 		}
 
+        public void GetAllEntities(IEnumerable<string> keys, ICollection<Entity<DataType>> entities)
+        {
+            Entity<DataType> cur;
+            foreach(var k in keys) {
+                var id = IdForKey(k);
+                if (!m_entitiesById.TryGetValue(id, out cur))
+                {
+                    cur = new Entity<DataType>
+                    {
+                        id = id
+                    };
+                }
+                entities.Add(cur);
+            }
+        }
+
         protected void UpdateEntity(string id, ref Entity<DataType> entity, bool sendUpdate = true)
         {
             m_entitiesById[id] = entity;

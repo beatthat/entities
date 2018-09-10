@@ -9,6 +9,14 @@ namespace BeatThat.Entities
         bool GetEntity(string key, out Entity<DataType> d);
 
         /// <summary>
+        /// Gets the entities for the provided list of keys.
+        /// The result includes a result for every requested key, even
+        /// </summary>
+        /// <param name="keys">Keys.</param>
+        /// <param name="entities">Entities.</param>
+        void GetAllEntities(IEnumerable<string> keys, ICollection<Entity<DataType>> entities);
+
+        /// <summary>
         /// Gets all entity data for entities that have resolved /
         /// objects stored in memory
         /// </summary>
