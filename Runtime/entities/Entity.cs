@@ -4,6 +4,7 @@ using BeatThat.Bindings;
 using BeatThat.Notifications;
 using BeatThat.Pools;
 using BeatThat.Requests;
+using UnityEngine;
 
 namespace BeatThat.Entities
 {
@@ -136,9 +137,32 @@ namespace BeatThat.Entities
                 return ResolveResultDTO<DataType>.ResolveError(loadKey, "Load key cannot be null or empty");
             }
 
-            var r = new ResolveResultRequest(loadKey, store);
-            await r.ExecuteAsync();
-            return r.item;
+            try
+            {
+                var r = new ResolveResultRequest(loadKey, store);
+                await r.ExecuteAsync();
+                return r.item;
+            }
+            catch (Exception e)
+            {
+                
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                var ae = e as AggregateException;
+                if (ae != null)
+                {
+                    foreach (var ie in ae.InnerExceptions)
+                    {
+                        Debug.LogError("error on execute async for type "
+                                       + typeof(DataType).Name + " and load key '" + loadKey + ": " + ie.Message + "\n" + ie.StackTrace);
+                    }
+                }
+                else {
+                    Debug.LogError("error on execute async for type "
+                                   + typeof(DataType).Name + " and load key '" + loadKey + ": " + e.Message);
+                }
+#endif
+                return ResolveResultDTO<DataType>.ResolveError(loadKey, e.Message);
+            }
         }
 
         public static async System.Threading.Tasks.Task<ResolveMultipleResultDTO<DataType>> ResolveAllAsync(
