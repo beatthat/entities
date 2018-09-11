@@ -16,6 +16,16 @@ namespace BeatThat.Entities
         public DataType data;
         public ResolveStatus status;
 
+        public bool GetData(out DataType data)
+        {
+            if(!this.status.hasResolved) {
+                data = default(DataType);
+                return false;
+            }
+            data = this.data;
+            return true;
+        }
+
 
         public static readonly string RESOLVE_REQUESTED = typeof(DataType).FullName + "_RESOLVE_REQUESTED";
         public static void RequestResolve(string key, Opts opts = Opts.RequireReceiver)
