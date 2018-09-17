@@ -230,11 +230,11 @@ namespace BeatThat.Entities
             }
 		}
 
-        virtual protected void Remove(string id, bool sendEvents = true)
+        virtual protected bool Remove(string id, bool sendEvents = true)
         {
             DataType data;
             if(!GetData(id, out data)) {
-                return;
+                return false;
             }
 
             if (sendEvents)
@@ -255,6 +255,8 @@ namespace BeatThat.Entities
             {
                 Entity<DataType>.DidRemove(id);
             }
+
+            return true;
         }
 
         private string IdForKey(string key)
