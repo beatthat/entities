@@ -1,8 +1,11 @@
 using System;
-using System.Threading.Tasks;
 using BeatThat.Bindings;
 using BeatThat.Requests;
 using BeatThat.Service;
+
+#if NET_4_6
+using System.Threading.Tasks;
+#endif
 
 namespace BeatThat.Entities
 {
