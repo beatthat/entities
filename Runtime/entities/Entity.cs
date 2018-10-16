@@ -16,6 +16,12 @@ namespace BeatThat.Entities
         public DataType data;
         public ResolveStatus status;
 
+        /// <summary>
+        /// hacky flag to enable debugging (usually temporarily) for a single entity type
+        /// </summary>
+        public static bool DEBUG = false;
+
+
         public bool GetData(out DataType data)
         {
             if(!this.status.hasResolved) {

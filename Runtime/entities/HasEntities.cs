@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BeatThat.Entities
 {
@@ -40,6 +41,18 @@ namespace BeatThat.Entities
             }
 
             d = entity.data;
+
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+            if (Entity<DataType>.DEBUG)
+            {
+                Debug.Log("[" + Time.frameCount + "][" + typeof(Entity<DataType>).Name 
+                     + "] key=" + key 
+                     + " - found with timestamp=" + entity.status.timestamp 
+                     + ", and maxAgeSecs=" +  entity.status.maxAgeSecs 
+                     + ", isExpired=" + entity.status.IsExpiredAt(DateTimeOffset.Now)
+                     + ", isResolveInProgress=" + entity.status.isResolveInProgress);
+            }
+#endif
 
             var status = entity.status;
             if(status.IsExpiredAt(DateTimeOffset.Now) && !status.isResolveInProgress) {
