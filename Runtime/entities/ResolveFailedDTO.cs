@@ -8,6 +8,7 @@ namespace BeatThat.Entities
 	{
 		public string key;
 		public object error;
+        public int resolveRequestId;
 
         public string errorMessage {
             get {
@@ -22,6 +23,16 @@ namespace BeatThat.Entities
 
                 return this.error.ToString();
             }
+        }
+
+        public static ResolveFailedDTO For(ResolveRequestDTO req, string error)
+        {
+            return new ResolveFailedDTO
+            {
+                key = req.key,
+                error = error,
+                resolveRequestId = req.resolveRequestId
+            };
         }
 	}
 }

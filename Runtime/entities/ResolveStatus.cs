@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace BeatThat.Entities
 {
@@ -12,6 +11,8 @@ namespace BeatThat.Entities
 		public DateTimeOffset timestamp;
 		public string resolveError;
         public int maxAgeSecs;
+        public int requestIdLastStarted;
+        public int requestIdLastCompleted;
 
         public bool IsExpiredAt(DateTimeOffset time)
         {
@@ -39,10 +40,12 @@ namespace BeatThat.Entities
                 hasResolved = this.hasResolved,
                 timestamp = this.timestamp,
                 maxAgeSecs = this.maxAgeSecs,
+                requestIdLastStarted = this.requestIdLastStarted,
+                requestIdLastCompleted = dto.resolveRequestId
 			};
 		}
 
-		public ResolveStatus ResolveStarted(DateTimeOffset updateTime)
+        public ResolveStatus ResolveStarted(int requestId, DateTimeOffset updateTime)
 		{
 			return new ResolveStatus {
                 isResolveInProgress = true,
@@ -50,20 +53,47 @@ namespace BeatThat.Entities
                 hasResolved = this.hasResolved,
                 timestamp = this.timestamp,
                 maxAgeSecs = this.maxAgeSecs,
-				resolveError = this.resolveError
+				resolveError = this.resolveError,
+                requestIdLastStarted = requestId,
+                requestIdLastCompleted = this.requestIdLastCompleted
 			};
 		}
 
-		public ResolveStatus ResolveSucceeded(DateTimeOffset timestamp, DateTimeOffset updateTime, int maxAgeSecs)
-		{
+		public ResolveStatus ResolveSucceeded(
+            int requestId, 
+            DateTimeOffset timestamp, 
+            DateTimeOffset updateTime, 
+            int maxAgeSecs
+        ) {
 			return new ResolveStatus {
 				hasResolved = true,
 				isResolveInProgress = false,
 				updatedAt = updateTime,
                 timestamp = timestamp,
 				resolveError = this.resolveError,
-                maxAgeSecs = maxAgeSecs
+                maxAgeSecs = maxAgeSecs,
+                requestIdLastStarted = this.requestIdLastStarted,
+                requestIdLastCompleted = requestId
 			};
 		}
+
+        public ResolveStatus Resolved(
+            DateTimeOffset timestamp,
+            DateTimeOffset updateTime,
+            int maxAgeSecs
+        )
+        {
+            return new ResolveStatus
+            {
+                hasResolved = true,
+                isResolveInProgress = false,
+                updatedAt = updateTime,
+                timestamp = timestamp,
+                resolveError = this.resolveError,
+                maxAgeSecs = maxAgeSecs,
+                requestIdLastStarted = this.requestIdLastStarted,
+                requestIdLastCompleted = this.requestIdLastCompleted
+            };
+        }
 	}
 }

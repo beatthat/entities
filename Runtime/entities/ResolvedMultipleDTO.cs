@@ -7,6 +7,14 @@ namespace BeatThat.Entities
 	public struct ResolvedMultipleDTO<DataType>
 	{
         public IEnumerable<ResolveSucceededDTO<DataType>> entities;
+
+        public static ResolvedMultipleDTO<DataType> Create(IEnumerable<ResolveSucceededDTO<DataType>> pEntities)
+        {
+            return new ResolvedMultipleDTO<DataType>
+            {
+                entities = pEntities
+            };
+        }
 	}
 }
 

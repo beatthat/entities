@@ -28,9 +28,14 @@ namespace BeatThat.Entities
 		sealed override protected void BindAll()
         {
             Bind<ResolveSucceededDTO<DataType>>(Entity<DataType>.RESOLVE_SUCCEEDED, this.OnResolveSucceeded);
-            Bind <ResolvedMultipleDTO<DataType>>(Entity<DataType>.RESOLVED_MULTIPLE, this.OnResolvedMultiple);
-            Bind <string>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
-            Bind <ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
+            Bind<ResolvedMultipleDTO<DataType>>(Entity<DataType>.RESOLVED_MULTIPLE, this.OnResolvedMultiple);
+            Bind<ResolveRequestDTO>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
+            Bind<ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
+
+
+            Bind<StoreEntityDTO<DataType>>(Entity<DataType>.STORE, this.OnStore);
+            Bind<StoreMultipleDTO<DataType>>(Entity<DataType>.STORE_MULTIPLE, this.OnStoreMultiple);
+
             Bind<bool>(Entity<DataType>.UNLOAD_ALL_REQUESTED, this.Clear);
             BindEntityStore();
 		}
@@ -51,24 +56,46 @@ namespace BeatThat.Entities
             }
         }
 
-        public void GetResolved(ICollection<DataType> resolved)
+        public void GetResolved(
+            ICollection<DataType> resolved, 
+            EntityFilter<DataType> filter = null
+        )
         {
-            foreach(var e in m_entitiesById.Values) {
-                if(e.status.hasResolved) {
-                    resolved.Add(e.data);
+            foreach(var e in m_entitiesById.Values)
+            {
+                if(!e.status.hasResolved) {
+                    continue;
                 }
+                if(filter == null) {
+                    resolved.Add(e.data);
+                    continue;
+                }
+                var eRef = e;
+                if(!filter(ref eRef)) {
+                    continue;
+                }
+
+                resolved.Add(e.data);
             }
         }
 
-        public void GetResolved(IDictionary<string, DataType> resolved)
+        public void GetResolved(
+            IDictionary<string, DataType> resolved,
+            EntityFilter<DataType> filter = null
+        )
         {
             foreach (var kv in m_entitiesById)
             {
                 var e = kv.Value;
-                if (e.status.hasResolved)
+                if (!e.status.hasResolved)
                 {
-                    resolved[kv.Key] = e.data;
+                    continue;
                 }
+                if(filter != null && !filter(ref e)) {
+                    continue;
+                }
+
+                resolved[kv.Key] = e.data;
             }
         }
 
@@ -151,6 +178,13 @@ namespace BeatThat.Entities
         {
             Entity<DataType> cur;
             foreach(var k in keys) {
+                if(string.IsNullOrEmpty(k)) {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                    Debug.LogWarning("attempt to get entity with null or empty key");
+#endif
+                    continue;
+                }
+
                 var id = IdForKey(k);
                 if (!m_entitiesById.TryGetValue(id, out cur))
                 {
@@ -165,6 +199,13 @@ namespace BeatThat.Entities
 
         protected void UpdateEntity(string id, ref Entity<DataType> entity, bool sendUpdate = true)
         {
+            if(string.IsNullOrEmpty(id)) {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                Debug.LogWarning("attempt to update entity with null or empty key");
+#endif
+
+                return;
+            }
             m_entitiesById[id] = entity;
             if(sendUpdate) {
                 Entity<DataType>.Updated(id);
@@ -173,19 +214,31 @@ namespace BeatThat.Entities
 
         virtual protected void OnResolveFailed(ResolveFailedDTO err)
 		{
+            if(string.IsNullOrEmpty(err.key)) {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                Debug.LogWarning("received resolved-failed notification for a null or empty key (message-" + err.errorMessage + ")");
+#endif
+                return;
+            }
             Entity<DataType> entity;
             GetEntity(err.key, out entity);
             entity.status = entity.status.ResolveFailed(err, DateTimeOffset.Now);
             UpdateEntity(err.key, ref entity);
 		}
 
-        virtual protected void OnResolveStarted(string key)
+        virtual protected void OnResolveStarted(ResolveRequestDTO dto)
 		{
             Entity<DataType> entity;
-            GetEntity(key, out entity);
-            entity.id = (!string.IsNullOrEmpty(entity.id)) ? entity.id : key;
-            entity.status = entity.status.ResolveStarted(DateTimeOffset.Now);
-            UpdateEntity(key, ref entity);
+            GetEntity(dto.key, out entity);
+
+            entity.id = (!string.IsNullOrEmpty(entity.id)) 
+                ? entity.id : dto.key;
+
+            entity.status = entity.status.ResolveStarted(
+                dto.resolveRequestId, DateTimeOffset.Now
+            );
+
+            UpdateEntity(dto.key, ref entity);
 		}
 
         virtual protected void OnResolvedMultiple(ResolvedMultipleDTO<DataType> dto)
@@ -219,7 +272,11 @@ namespace BeatThat.Entities
             GetEntity(dto.id, out entity);
             entity.id = dto.id;
             entity.data = dto.data;
-            entity.status = entity.status.ResolveSucceeded(dto.timestamp, DateTimeOffset.Now, dto.maxAgeSecs);
+
+            entity.status = entity.status.ResolveSucceeded(
+                dto.resolveRequestId, dto.timestamp, 
+                DateTimeOffset.Now, dto.maxAgeSecs
+            );
 
             UpdateEntity(dto.id, ref entity);
 
@@ -229,6 +286,46 @@ namespace BeatThat.Entities
                 Entity<DataType>.Updated(dto.key);
             }
 		}
+
+        virtual protected void OnStore(StoreEntityDTO<DataType> dto)
+        {
+            if (string.IsNullOrEmpty(dto.id))
+            {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                Debug.LogWarning("[" + Time.frameCount + "] null or empty id in store for "
+                                 + typeof(DataType).Name + ": " + JsonUtility.ToJson(dto));
+#endif
+                return;
+            }
+
+            Entity<DataType> entity;
+            GetEntity(dto.id, out entity);
+            entity.id = dto.id;
+            entity.data = dto.data;
+
+            entity.status = entity.status.Resolved(
+                dto.timestamp, DateTimeOffset.Now, dto.maxAgeSecs
+            );
+
+            UpdateEntity(dto.id, ref entity);
+        }
+
+        virtual protected void OnStoreMultiple(StoreMultipleDTO<DataType> dto)
+        {
+            foreach (var entity in dto.entities)
+            {
+                try
+                {
+                    OnStore(entity);
+                }
+                catch (Exception e)
+                {
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                    Debug.LogError("Error on process entity: " + e.Message);
+#endif
+                }
+            }
+        }
 
         virtual protected bool Remove(string id, bool sendEvents = true)
         {

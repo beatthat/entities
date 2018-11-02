@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace BeatThat.Entities
 {
-    
+
+    public delegate bool EntityFilter<DataType>(ref Entity<DataType> entity);
+
     public interface HasEntities<DataType> : HasEntityData<DataType>, HasEntityResolveStatus
 	{
         bool GetEntity(string key, out Entity<DataType> d);
@@ -21,13 +23,19 @@ namespace BeatThat.Entities
         /// Gets all entity data for entities that have resolved /
         /// objects stored in memory
         /// </summary>
-        void GetResolved(ICollection<DataType> resolved);
+        void GetResolved(
+            ICollection<DataType> resolved, 
+            EntityFilter<DataType> filter = null
+        );
 
         /// <summary>
         /// Gets all entity data for entities that have resolved /
         /// objects stored in memory. Result shape is id=>data
         /// </summary>
-        void GetResolved(IDictionary<string, DataType> resolved);
+        void GetResolved(
+            IDictionary<string, DataType> resolved, 
+            EntityFilter<DataType> filter = null
+        );
 	}
 
     public static class HasEntitiesExt

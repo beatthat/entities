@@ -9,6 +9,7 @@ namespace BeatThat.Entities
         public string message;
         public string key;
 		public string id;
+        public int resolveRequestId;
         public DataType data;
         public int maxAgeSecs;
         public DateTimeOffset timestamp;
@@ -23,38 +24,72 @@ namespace BeatThat.Entities
             return true;
         }
 
-        public static ResolveResultDTO<DataType> ResolveError(string key, string error)
+        public static ResolveResultDTO<DataType> ResolveSucceeded(
+            ResolveRequestDTO req,
+            string id, 
+            DataType data, 
+            int maxAgeSecs = 0,
+            DateTimeOffset? timestamp = null
+        )
+        {
+            return new ResolveResultDTO<DataType>
+            {
+                status = ResolveStatusCode.OK,
+                message = "ok",
+                id = id,
+                key = req.key,
+                data = data,
+                resolveRequestId = req.resolveRequestId,
+                timestamp = timestamp.HasValue? timestamp.Value: DateTimeOffset.Now,
+                maxAgeSecs = maxAgeSecs
+            };
+        }
+
+
+        public static ResolveResultDTO<DataType> ResolveError(
+            ResolveRequestDTO req,
+            string error
+        )
         {
             return new ResolveResultDTO<DataType>
             {
                 status = ResolveStatusCode.ERROR,
                 message = error,
-                id = key,
-                key = key,
+                id = req.key,
+                key = req.key,
+                resolveRequestId = req.resolveRequestId,
                 timestamp = DateTimeOffset.Now
             };
         }
 
-        public static ResolveResultDTO<DataType> ResolveError(string key, Exception error, string message = null)
+        public static ResolveResultDTO<DataType> ResolveError(
+            ResolveRequestDTO req,
+            Exception error, 
+            string message = null
+        )
         {
             return new ResolveResultDTO<DataType>
             {
                 status = ResolveStatusCode.ERROR,
                 message = !string.IsNullOrEmpty(message)? message: error.Message,
-                id = key,
-                key = key,
+                id = req.key,
+                key = req.key,
+                resolveRequestId = req.resolveRequestId,
                 timestamp = DateTimeOffset.Now
             };
         }
 
-        public static ResolveResultDTO<DataType> ResolveNotFound(string key)
+        public static ResolveResultDTO<DataType> ResolveNotFound(
+            ResolveRequestDTO req
+        )
         {
             return new ResolveResultDTO<DataType>
             {
                 status = ResolveStatusCode.NOT_FOUND,
                 message = "not found",
-                id = key,
-                key = key,
+                id = req.key,
+                key = req.key,
+                resolveRequestId = req.resolveRequestId,
                 timestamp = DateTimeOffset.Now
             };
         }

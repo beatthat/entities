@@ -23,9 +23,11 @@ namespace BeatThat.Entities.Examples
 #endif
     public class DogDataResolver : DefaultEntityResolver<DogData>
     {
-        public override async Task<ResolveResultDTO<DogData>> ResolveAsync(string key)
+        public override async Task<ResolveResultDTO<DogData>> ResolveAsync(
+            ResolveRequestDTO req
+        )
         {
-            var path = DogAPI.GetDogUrl(key);
+            var path = DogAPI.GetDogUrl(req.key);
 
             try {
                 
@@ -33,24 +35,14 @@ namespace BeatThat.Entities.Examples
                 // to make a one-line HTTP request and get a typed result
                 var data = await new WebRequest<DogData>(path).ExecuteAsync();
 
-                return new ResolveResultDTO<DogData>
-                {
-                    key = key,
-                    id = data.id,
-                    status = ResolveStatusCode.OK,
-                    timestamp = DateTimeOffset.Now,
-                    data = data
-                };
+                return ResolveResultDTO<DogData>.ResolveSucceeded(
+                    req, data.id, data
+                );
             }
             catch(Exception e) {
-                return new ResolveResultDTO<DogData>
-                {
-                    key = key,
-                    id = key,
-                    status = ResolveStatusCode.ERROR,
-                    message = e.Message,
-                    timestamp = DateTimeOffset.Now
-                };
+                return ResolveResultDTO<DogData>.ResolveError(
+                    req, e.Message
+                );
             }
         }
 
@@ -81,33 +73,23 @@ namespace BeatThat.Entities.Examples
 #endif
     public class DogDataResolver : DefaultEntityResolver<DogData>
     {
-        public override Request<ResolveResultDTO<DogData>> Resolve(string key, Action<Request<ResolveResultDTO<DogData>>> callback = null)
+        public override Request<ResolveResultDTO<DogData>> Resolve(ResolveRequestDTO req, Action<Request<ResolveResultDTO<DogData>>> callback = null)
         {
+            var key = req.key;
+
             var path = DogAPI.GetDogUrl(key);
 
             var promise = new Promise<ResolveResultDTO<DogData>>((resolve, reject) =>
             {
                 new WebRequest<DogData>(path).Execute(r => {
                     if(r.hasError) {
-                        reject(new ResolveResultDTO<DogData>
-                        {
-                            key = key,
-                            id = key,
-                            status = ResolveStatusCode.ERROR,
-                            message = r.error,
-                            timestamp = DateTimeOffset.Now
-                        });
+                        reject(ResolveResultDTO<DogData>.ResolveError(req, r.error));
                         return;
                     }
 
-                    resolve(new ResolveResultDTO<DogData>
-                    {
-                        key = key,
-                        id = r.item.id,
-                        status = ResolveStatusCode.OK,
-                        timestamp = DateTimeOffset.Now,
-                        data = r.item
-                    });
+                    resolve(ResolveResultDTO<DogData>.ResolveSucceeded(
+                        req, r.item.id, r.item
+                    ));
                 });
             });
 

@@ -2,6 +2,7 @@ using BeatThat.Commands;
 using BeatThat.Notifications;
 using BeatThat.DependencyInjection;
 using System;
+using UnityEngine;
 
 namespace BeatThat.Entities
 {
@@ -35,48 +36,85 @@ namespace BeatThat.Entities
 
         public override string notificationType { get { return Entity<DataType>.RESOLVE_REQUESTED; } }
 
-        public override void Execute(ResolveRequestDTO dto)
+        public override void Execute(ResolveRequestDTO req)
         {
-            var key = dto.key;
-
-            if (!dto.forceUpdate)
+            var key = req.key;
+            if (string.IsNullOrEmpty(key))
             {
-                switch (ResolveAdviceHelper.AdviseOnAndSendErrorIfCoolingDown(key, hasData, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                Debug.LogWarningFormat(
+                    "[{0}] null or empty key passed to resolve for {1}",
+                    Time.frameCount, typeof(DataType).Name
+                );
+                Entity<DataType>.ResolveFailed(new ResolveFailedDTO
+                {
+                    key = "",
+                    error = "null or empty key passed to resolve"
+                });
+                return;
+#endif
+            }
+
+            if (!req.forceUpdate)
+            {
+                var resolveAdvice = ResolveAdviceHelper.AdviseOnAndSendErrorIfCoolingDown(
+                    key, hasData, Entity<DataType>.RESOLVE_FAILED, debug: m_debug
+                );
+
+                switch (resolveAdvice)
                 {
                     case ResolveAdvice.PROCEED:
                         break;
                     default:
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+                        if(m_debug) {
+                            Debug.LogFormat(
+                                "[{0}] will skip resolve for {1} with key {2} on advice {3}",
+                                Time.frameCount, typeof(DataType).Name, key, resolveAdvice
+                            );
+                        }
+#endif
                         return;
                 }
             }
 
-            Resolve(key);
+            Resolve(req);
         }
 
 #if NET_4_6
-        private async void Resolve(string key)
+        private async void Resolve(ResolveRequestDTO req)
         {
-            Entity<DataType>.ResolveStarted(key);
+#if UNITY_EDITOR || DEBUG_UNSTRIP
+            if (m_debug)
+            {
+                Debug.LogFormat(
+                    "[{0}] will resolve {1} with key {2}",
+                    Time.frameCount, typeof(DataType).Name, req.key
+                );
+            }
+#endif
+            
+            Entity<DataType>.ResolveStarted(req);
 
             try
             {
-                var resultItem = await this.resolver.ResolveAsync(key);
+                var resultItem = await this.resolver.ResolveAsync(req);
 
                 if (!IsOk(resultItem.status))
                 {
-                    NotificationBus.Send(Entity<DataType>.RESOLVE_FAILED, new ResolveFailedDTO
-                    {
-                        key = key,
-                        error = resultItem.status
-                    });
+                    NotificationBus.Send(
+                        Entity<DataType>.RESOLVE_FAILED,
+                        ResolveFailedDTO.For(req, resultItem.status)
+                    );
                     return;
                 }
 
                 Entity<DataType>.ResolveSucceeded(
                     new ResolveSucceededDTO<DataType>
                     {
-                        key = key,
+                        key = req.key,
                         id = resultItem.id,
+                        resolveRequestId = req.resolveRequestId,
                         data = resultItem.data,
                         timestamp = resultItem.timestamp,
                         maxAgeSecs = resultItem.maxAgeSecs
@@ -86,21 +124,19 @@ namespace BeatThat.Entities
             }
             catch (Exception e)
             {
-                Entity<DataType>.ResolveFailed(new ResolveFailedDTO
-                {
-                    key = key,
-                    error = e.Message
-                });
+                Entity<DataType>.ResolveFailed(
+                    ResolveFailedDTO.For(req, e.Message)
+                );
             }
         }
 #else
-        private void Resolve(string key)
+        private void Resolve(ResolveRequestDTO req)
         {
-            Entity<DataType>.ResolveStarted (key);
+            Entity<DataType>.ResolveStarted (req);
 
-            this.resolver.Resolve(key, (r =>
+            this.resolver.Resolve(req, (r =>
             {
-                if (ResolveErrorHelper.HandledError(key, r, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
+                if (ResolveErrorHelper.HandledError(req.key, r, Entity<DataType>.RESOLVE_FAILED, debug: m_debug))
                 {
                     return;
                 }
@@ -108,18 +144,18 @@ namespace BeatThat.Entities
                 var resultItem = r.item;
 
                 if(!IsOk(resultItem.status)) {
-                    NotificationBus.Send(Entity<DataType>.RESOLVE_FAILED, new ResolveFailedDTO
-                    {
-                        key = key,
-                        error = resultItem.status
-                    });
+                    NotificationBus.Send(
+                        Entity<DataType>.RESOLVE_FAILED,
+                        ResolveFailedDTO.For(req, resultItem.status)
+                    );
                     return;
                 }
 
                 Entity<DataType>.ResolveSucceeded(
                     new ResolveSucceededDTO<DataType> {
-                    key = key,
+                    key = req.key,
                     id = resultItem.id,
+                    resolveRequestId = req.resolveRequestId,
                     data = resultItem.data,
                     timestamp = resultItem.timestamp,
                     maxAgeSecs = resultItem.maxAgeSecs

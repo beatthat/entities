@@ -24,57 +24,60 @@ namespace BeatThat.Entities
     /// </summary>
     public class DefaultEntityResolver<DataType> : BindingService, EntityResolver<DataType>
     {
-        virtual protected ResolveResultDTO<DataType> GetStoredEntityAsResolveResult(string key)
+        virtual protected ResolveResultDTO<DataType> GetStoredEntityAsResolveResult(ResolveRequestDTO req)
         {
+            if(string.IsNullOrEmpty(req.key)) {
+                return ResolveResultDTO<DataType>.ResolveError(
+                    req, "null or empty key"
+                );
+            }
+
             var store = Services.Require<HasEntities<DataType>>();
             Entity<DataType> entity;
-            if (!store.GetEntity(key, out entity) || !entity.status.hasResolved)
+            if (!store.GetEntity(req.key, out entity) || !entity.status.hasResolved)
             {
-                return new ResolveResultDTO<DataType>
-                {
-                    status = string.IsNullOrEmpty(entity.status.resolveError) ?
-                                   ResolveStatusCode.ERROR : ResolveStatusCode.NOT_FOUND,
-                    message = entity.status.resolveError,
-                    id = key,
-                    key = key,
-                    timestamp = DateTimeOffset.Now
-                };
+                return string.IsNullOrEmpty(entity.status.resolveError) ?
+                             ResolveResultDTO<DataType>.ResolveNotFound(req) :
+                             ResolveResultDTO<DataType>.ResolveError(
+                                 req, entity.status.resolveError
+                                );
             }
 
             var status = entity.status;
 
-            return new ResolveResultDTO<DataType>
-            {
-                status = ResolveStatusCode.OK,
-                id = entity.id,
-                key = key,
-                timestamp = status.timestamp,
-                maxAgeSecs = status.maxAgeSecs,
-                data = entity.data
-            };
+            return ResolveResultDTO<DataType>.ResolveSucceeded(
+                req, entity.id, entity.data, status.maxAgeSecs, status.timestamp
+            );
         }
 
 #if NET_4_6
         /// <summary>
         /// Wraps call to ResolveAsync in a request
         /// </summary>
-        virtual public Request<ResolveResultDTO<DataType>> Resolve(string key, Action<Request<ResolveResultDTO<DataType>>> callback = null)
+        virtual public Request<ResolveResultDTO<DataType>> Resolve(
+            ResolveRequestDTO req, 
+            Action<Request<ResolveResultDTO<DataType>>> callback = null
+        )
         {
-            var r = new TaskRequest<ResolveResultDTO<DataType>>(ResolveAsync(key));
+            var r = new TaskRequest<ResolveResultDTO<DataType>>(ResolveAsync(req));
             r.Execute(callback);
             return r;
         }
 
 #pragma warning disable 1998
-        virtual public async Task<ResolveResultDTO<DataType>> ResolveAsync(string key)
+        virtual public async Task<ResolveResultDTO<DataType>> ResolveAsync(
+            ResolveRequestDTO req
+        )
 #pragma warning restore 1998
         {
-            return GetStoredEntityAsResolveResult(key);
+            return GetStoredEntityAsResolveResult(req);
         }
 #else
-        virtual public Request<ResolveResultDTO<DataType>> Resolve(string key, Action<Request<ResolveResultDTO<DataType>>> callback = null)
+        virtual public Request<ResolveResultDTO<DataType>> Resolve(
+            ResolveRequestDTO req, 
+            Action<Request<ResolveResultDTO<DataType>>> callback = null)
         {
-            var result = GetStoredEntityAsResolveResult(key);
+            var result = GetStoredEntityAsResolveResult(req);
             var request = new LocalRequest<ResolveResultDTO<DataType>>(result);
             request.Execute(callback);
             return request;
