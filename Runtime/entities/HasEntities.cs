@@ -38,13 +38,45 @@ namespace BeatThat.Entities
         );
 	}
 
+    [Flags]
+    public enum RequestResolvePolicyFlags
+    {
+        NEVER = 0,
+        IF_MISSING = 1,
+        IF_EXPIRED = 1 << 1
+    }
+
     public static class HasEntitiesExt
     {
-        public static bool GetDataWithBackgroundRefresh<DataType>(this HasEntities<DataType> entities, string key, out DataType d)
+        /// <summary>
+        /// A convenience extension/wrapper around HasEntities&lt;DataType>&gt::GetData
+        /// that also issues a resolve request under specifiable conditions,
+        /// e.g. if the entity is missing or if it is expired
+        /// </summary>
+        /// <returns><c>true</c>, if data was gotten, <c>false</c> otherwise.</returns>
+        /// <param name="entities">Entities.</param>
+        /// <param name="key">Key.</param>
+        /// <param name="d">D.</param>
+        /// <param name="requestResolvePolicy">Request resolve policy.</param>
+        /// <typeparam name="DataType">The 1st type parameter.</typeparam>
+        public static bool GetData<DataType>(
+            this HasEntities<DataType> entities,
+            string key,
+            out DataType d,
+            RequestResolvePolicyFlags requestResolvePolicy
+        )
         {
             Entity<DataType> entity;
-            if(!entities.GetEntity(key, out entity) || !entity.status.hasResolved) {
+            if (!entities.GetEntity(key, out entity) || !entity.status.hasResolved)
+            {
                 d = default(DataType);
+                if (requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_MISSING))
+                {
+                    Entity<DataType>.RequestResolve(new ResolveRequestDTO
+                    {
+                        key = key
+                    });
+                }
                 return false;
             }
 
@@ -53,22 +85,34 @@ namespace BeatThat.Entities
 #if UNITY_EDITOR || DEBUG_UNSTRIP
             if (Entity<DataType>.DEBUG)
             {
-                Debug.Log("[" + Time.frameCount + "][" + typeof(Entity<DataType>).Name 
-                     + "] key=" + key 
-                     + " - found with timestamp=" + entity.status.timestamp 
-                     + ", and maxAgeSecs=" +  entity.status.maxAgeSecs 
+                Debug.Log("[" + Time.frameCount + "][" + typeof(Entity<DataType>).Name
+                     + "] key=" + key
+                     + " - found with timestamp=" + entity.status.timestamp
+                     + ", and maxAgeSecs=" + entity.status.maxAgeSecs
                      + ", isExpired=" + entity.status.IsExpiredAt(DateTimeOffset.Now)
                      + ", isResolveInProgress=" + entity.status.isResolveInProgress);
             }
 #endif
 
-            var status = entity.status;
-            if(status.IsExpiredAt(DateTimeOffset.Now) && !status.isResolveInProgress) {
-                Entity<DataType>.RequestResolve(key);
+            if (requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_EXPIRED))
+            {
+                var status = entity.status;
+                if (status.IsExpiredAt(DateTimeOffset.Now) && !status.isResolveInProgress)
+                {
+                    Entity<DataType>.RequestResolve(key);
+                }
             }
 
             return true;
         }
+
+#if !NET_4_6
+        /// polyfill for HasFlag method in .NET 4+
+        public static bool HasFlag(this RequestResolvePolicyFlags val, RequestResolvePolicyFlags flag) 
+        {
+            return ((int)val & (int)flag) == (int)flag;
+        }
+#endif
     }
 }
 
