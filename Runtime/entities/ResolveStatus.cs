@@ -31,6 +31,29 @@ namespace BeatThat.Entities
             return this.timestamp.AddSeconds(this.maxAgeSecs) < time;
         }
 
+        public bool HasError()
+        {
+            return !string.IsNullOrEmpty(this.resolveError);
+        }
+
+        public bool IsUnresolvedWithError()
+        {
+            return !this.hasResolved && !string.IsNullOrEmpty(this.resolveError);
+        }
+
+        public bool IsUnresolvedWithErrorWithin(float secs)
+        {
+            if(this.hasResolved) {
+                return false;
+            }
+
+            if(string.IsNullOrEmpty(this.resolveError)) {
+                return false;
+            }
+
+            return this.updatedAt.AddSeconds(secs) < DateTimeOffset.Now;
+        }
+
 		public ResolveStatus ResolveFailed(ResolveFailedDTO dto, DateTimeOffset updateTime)
 		{
 			return new ResolveStatus {

@@ -43,7 +43,8 @@ namespace BeatThat.Entities
     {
         NEVER = 0,
         IF_MISSING = 1,
-        IF_EXPIRED = 1 << 1
+        IF_EXPIRED = 1 << 1,
+        IF_HAS_ERROR = 1 << 2
     }
 
     public static class HasEntitiesExt
@@ -70,7 +71,13 @@ namespace BeatThat.Entities
             if (!entities.GetEntity(key, out entity) || !entity.status.hasResolved)
             {
                 d = default(DataType);
-                if (requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_MISSING))
+
+                // By default DO NOT try to resolve an entity that is in error status
+                if (entity.status.HasError() && !requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_HAS_ERROR)) {
+                    return false;
+                }
+
+                if(requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_MISSING))
                 {
                     Entity<DataType>.RequestResolve(new ResolveRequestDTO
                     {
@@ -93,6 +100,11 @@ namespace BeatThat.Entities
                      + ", isResolveInProgress=" + entity.status.isResolveInProgress);
             }
 #endif
+            if (entity.status.HasError() && !requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_HAS_ERROR))
+            {
+                // By default DO NOT try to resolve an entity that is in error status
+                return true;
+            }
 
             if (requestResolvePolicy.HasFlag(RequestResolvePolicyFlags.IF_EXPIRED))
             {
