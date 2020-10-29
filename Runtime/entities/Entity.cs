@@ -15,7 +15,7 @@ namespace BeatThat.Entities
     /// Wrapper for all Entity types that contains the data
     /// for the entity (if resolved) in addition to the resolve status/metadata.
     /// </summary>
-    public struct Entity<DataType> 
+    public struct Entity<DataType>
     {
         public string id;
         public DataType data;
@@ -34,10 +34,10 @@ namespace BeatThat.Entities
         /// <returns>The resolve request identifier.</returns>
         private static int NextResolveRequestId()
         {
-            RESOLVE_REQUEST_SEQ = 
-                RESOLVE_REQUEST_SEQ < int.MaxValue 
+            RESOLVE_REQUEST_SEQ =
+                RESOLVE_REQUEST_SEQ < int.MaxValue
                                          ? RESOLVE_REQUEST_SEQ + 1 : 0;
-            
+
             return RESOLVE_REQUEST_SEQ;
         }
 
@@ -48,7 +48,8 @@ namespace BeatThat.Entities
         /// <param name="data">Data.</param>
         public bool GetData(out DataType data)
         {
-            if(!this.status.hasResolved) {
+            if (!this.status.hasResolved)
+            {
                 data = default(DataType);
                 return false;
             }
@@ -64,7 +65,6 @@ namespace BeatThat.Entities
                 key = loadKey,
                 forceUpdate = forceResolve,
                 resolveRequestId = reqId
-
             };
         }
 
@@ -76,8 +76,8 @@ namespace BeatThat.Entities
         /// <param name="dto">Dto.</param>
         /// <param name="opts">Opts.</param>
         public static int RequestResolve(
-            string key, 
-            bool forceResolve = false, 
+            string key,
+            bool forceResolve = false,
             Opts opts = Opts.RequireReceiver
         )
         {
@@ -168,7 +168,7 @@ namespace BeatThat.Entities
         {
             N.Send(STORE_MULTIPLE, dto, opts);
         }
-        public static readonly string STORE_MULTIPLE = typeof(DataType).FullName + "_STORE_MULTIPLE"; 
+        public static readonly string STORE_MULTIPLE = typeof(DataType).FullName + "_STORE_MULTIPLE";
 
 
 
@@ -232,19 +232,18 @@ namespace BeatThat.Entities
         public static bool RequestResolveIfExpiredOrUnresolved(string key, HasEntities<DataType> entities)
         {
             ResolveStatus status;
-            if(!entities.GetResolveStatus(key, out status)) {
+            if (!entities.GetResolveStatus(key, out status))
+            {
                 RequestResolve(key);
                 return true;
             }
-
-            if(status.IsExpiredAt(DateTimeOffset.Now)) {
+            if (status.IsExpiredAt(DateTimeOffset.Now))
+            {
                 RequestResolve(key);
                 return true;
             }
-
             return false;
         }
-
 #if NET_4_6
         /// <summary>
         /// Resolve the data for a key from an async method using await.
@@ -276,12 +275,13 @@ namespace BeatThat.Entities
         /// <param name="store">Store.</param>
         /// <param name="results">Results.</param>
         public static async System.Threading.Tasks.Task FindAllAsync(
-            IEnumerable<string> keys, 
+            IEnumerable<string> keys,
             HasEntities<DataType> store,
             ICollection<DataType> results
         )
         {
-            if(keys == null) {
+            if (keys == null)
+            {
                 return;
             }
 
@@ -322,7 +322,6 @@ namespace BeatThat.Entities
             HasEntities<DataType> store)
         {
             var req = NewResolveRequest(loadKey);
-
             if (string.IsNullOrEmpty(loadKey))
             {
                 return ResolveResultDTO<DataType>.ResolveError(
@@ -330,7 +329,6 @@ namespace BeatThat.Entities
                     "Load key cannot be null or empty"
                 );
             }
-
             var r = new ResolveResultRequest(req, store);
             try
             {
@@ -339,7 +337,6 @@ namespace BeatThat.Entities
             }
             catch (Exception e)
             {
-                
 #if UNITY_EDITOR || DEBUG_UNSTRIP
                 var ae = e as AggregateException;
                 if (ae != null)
@@ -347,17 +344,18 @@ namespace BeatThat.Entities
                     foreach (var ie in ae.InnerExceptions)
                     {
                         Debug.LogError("error on execute async for type "
-                                       + typeof(DataType).Name 
-                                       + " and load key '" + loadKey 
-                                       + ": " + ie.Message 
+                                       + typeof(DataType).Name
+                                       + " and load key '" + loadKey
+                                       + ": " + ie.Message
                                        + "\n" + ie.StackTrace
                                       );
                     }
                 }
-                else {
+                else
+                {
                     Debug.LogError("error on execute async for type "
-                                   + typeof(DataType).Name 
-                                   + " and load key '" + loadKey 
+                                   + typeof(DataType).Name
+                                   + " and load key '" + loadKey
                                    + ": " + e.Message
                                   );
                 }
@@ -380,16 +378,16 @@ namespace BeatThat.Entities
         /// If the entity is not initially loaded, sends the usual notifications and then listens for updates
         /// </summary>
         public static Request<DataType> Resolve(
-            string loadKey, 
-            HasEntities<DataType> store, 
+            string loadKey,
+            HasEntities<DataType> store,
             Action<Request<DataType>> callback = null)
         {
-            if(string.IsNullOrEmpty(loadKey)) {
+            if (string.IsNullOrEmpty(loadKey))
+            {
                 var err = new LocalRequest<DataType>("Load key cannot be null or empty");
                 err.Execute(callback);
                 return err;
             }
-
             var r = new DataRequest(NewResolveRequest(loadKey), store);
             r.Execute(callback);
             return r;
@@ -407,23 +405,21 @@ namespace BeatThat.Entities
             var promise = new Promise<ResolveMultipleResultDTO<DataType>>((resolve, reject, cancel, attach) =>
             {
                 var all = new JoinRequests();
-                foreach(var k in keys) {
+                foreach (var k in keys)
+                {
                     all.Add(new DataRequest(NewResolveRequest(k), store));
                 }
-
-                all.Execute(result => {
+                all.Execute(result =>
+                {
                     var allResult = result as JoinRequests;
-
-                    //ResolveResultDTO<DataType> cur;
-
-                    using(var resultRequests = ListPool<Request>.Get())
-                    using(var resultItems = ListPool<ResolveResultDTO<DataType>>.Get()) {
+                    using (var resultRequests = ListPool<Request>.Get())
+                    using (var resultItems = ListPool<ResolveResultDTO<DataType>>.Get())
+                    {
                         allResult.GetResults(resultRequests);
                         foreach (var rr in resultRequests)
                         {
                             var key = (rr as DataRequest).loadKey;
                             var reqDTO = (rr as DataRequest).requestDTO;
-
                             if (rr.hasError)
                             {
                                 resultItems.Add(
@@ -431,10 +427,8 @@ namespace BeatThat.Entities
                                         reqDTO, rr.error
                                     )
                                 );
-
                                 continue;
                             }
-
                             Entity<DataType> entity;
                             if (!store.GetEntity(key, out entity))
                             {
@@ -446,14 +440,11 @@ namespace BeatThat.Entities
                                 );
                                 continue;
                             }
-
                             var status = entity.status;
-
                             resultItems.Add(ResolveResultDTO<DataType>.ResolveSucceeded(
                                 reqDTO, entity.id, entity.data, status.maxAgeSecs, status.timestamp
                             ));
                         }
-
                         resolve(new ResolveMultipleResultDTO<DataType>
                         {
                             entities = resultItems.ToArray()
@@ -461,7 +452,6 @@ namespace BeatThat.Entities
                     }
                 });
             });
-
             promise.Execute(callback);
             return promise;
 
@@ -475,7 +465,7 @@ namespace BeatThat.Entities
                 this.requestDTO = req;
             }
 
-            public ResolveRequestDTO requestDTO { get; private set;  }
+            public ResolveRequestDTO requestDTO { get; private set; }
             public int resolveRequestId { get { return this.requestDTO.resolveRequestId; } }
             public string loadKey { get { return this.requestDTO.key; } }
             public ResolveResultDTO<DataType> item { get; private set; }
@@ -492,12 +482,6 @@ namespace BeatThat.Entities
                     CompleteWithError("load key cannot be null or empty");
                     return;
                 }
-
-                //if (TryComplete(false))
-                //{
-                //    return;
-                //}
-
                 CleanupBinding();
                 this.storeBinding = N.Add<string>(UPDATED, this.OnStoreUpdate);
                 Entity<DataType>.RequestResolve(this.requestDTO);
@@ -509,25 +493,21 @@ namespace BeatThat.Entities
                 {
                     return;
                 }
-
                 Entity<DataType> entity;
                 if (!store.GetEntity(this.loadKey, out entity))
                 {
-                    var err = "entity not tracked in store (expected in progress or complete)"; 
+                    var err = "entity not tracked in store (expected in progress or complete)";
                     this.item = ResolveResultDTO<DataType>.ResolveError(
                         this.requestDTO, err
                     );
-
                     CompleteWithError(err);
                     return;
                 }
-
                 ResolveStatus stat = entity.status;
-                if (stat.requestIdLastCompleted != this.resolveRequestId)
+                if (stat.isResolveInProgress)
                 {
                     return;
                 }
-
                 if (!stat.hasResolved)
                 {
                     var err = stat.resolveError ?? "not found";
@@ -537,12 +517,10 @@ namespace BeatThat.Entities
                     CompleteWithError(err);
                     return;
                 }
-
                 this.item = ResolveResultDTO<DataType>.ResolveSucceeded(
-                    this.requestDTO, entity.id, entity.data, 
+                    this.requestDTO, entity.id, entity.data,
                     stat.maxAgeSecs, stat.timestamp
                 );
-
                 CompleteRequest();
             }
 
@@ -566,7 +544,6 @@ namespace BeatThat.Entities
                     this.storeBinding = null;
                 }
             }
-
             private Binding storeBinding { get; set; }
             private HasEntities<DataType> store { get; set; }
 
@@ -592,15 +569,11 @@ namespace BeatThat.Entities
 
             protected override void ExecuteRequest()
             {
-                if(string.IsNullOrEmpty(this.loadKey)) {
+                if (string.IsNullOrEmpty(this.loadKey))
+                {
                     CompleteWithError("load key cannot be null or empty");
                     return;
                 }
-
-                //if(TryComplete(false)) {
-                //    return;
-                //}
-
                 CleanupBinding();
                 this.storeBinding = N.Add<string>(UPDATED, this.OnStoreUpdate);
                 Entity<DataType>.RequestResolve(this.requestDTO);
@@ -608,30 +581,27 @@ namespace BeatThat.Entities
 
             private void OnStoreUpdate(string id)
             {
-                if(id != this.loadKey) {
+                if (id != this.loadKey)
+                {
                     return;
                 }
-
                 Entity<DataType> entity;
-                if(!store.GetEntity(this.loadKey, out entity)) {
+                if (!store.GetEntity(this.loadKey, out entity))
+                {
                     CompleteWithError(
                         "entity not tracked in store (expected in progress or complete)"
                     );
                     return;
                 }
-
                 ResolveStatus stat = entity.status;
-                if (stat.requestIdLastCompleted != this.resolveRequestId)
-                {
+                if(stat.isResolveInProgress) {
                     return;
                 }
-
                 if (!stat.hasResolved)
                 {
                     CompleteWithError(stat.resolveError ?? "not found");
                     return;
                 }
-
                 this.item = entity.data;
                 CompleteRequest();
             }
@@ -659,7 +629,6 @@ namespace BeatThat.Entities
 
             private Binding storeBinding { get; set; }
             private HasEntities<DataType> store { get; set; }
-
         }
     }
 }

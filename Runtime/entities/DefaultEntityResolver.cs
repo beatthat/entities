@@ -26,28 +26,7 @@ namespace BeatThat.Entities
     {
         virtual protected ResolveResultDTO<DataType> GetStoredEntityAsResolveResult(ResolveRequestDTO req)
         {
-            if(string.IsNullOrEmpty(req.key)) {
-                return ResolveResultDTO<DataType>.ResolveError(
-                    req, "null or empty key"
-                );
-            }
-
-            var store = Services.Require<HasEntities<DataType>>();
-            Entity<DataType> entity;
-            if (!store.GetEntity(req.key, out entity) || !entity.status.hasResolved)
-            {
-                return string.IsNullOrEmpty(entity.status.resolveError) ?
-                             ResolveResultDTO<DataType>.ResolveNotFound(req) :
-                             ResolveResultDTO<DataType>.ResolveError(
-                                 req, entity.status.resolveError
-                                );
-            }
-
-            var status = entity.status;
-
-            return ResolveResultDTO<DataType>.ResolveSucceeded(
-                req, entity.id, entity.data, status.maxAgeSecs, status.timestamp
-            );
+            return this.helper.GetStoredEntityAsResolveResult(req);
         }
 
 #if NET_4_6
@@ -59,9 +38,7 @@ namespace BeatThat.Entities
             Action<Request<ResolveResultDTO<DataType>>> callback = null
         )
         {
-            var r = new TaskRequest<ResolveResultDTO<DataType>>(ResolveAsync(req));
-            r.Execute(callback);
-            return r;
+            return this.helper.Resolve(req, callback);
         }
 
 #pragma warning disable 1998
@@ -77,12 +54,85 @@ namespace BeatThat.Entities
             ResolveRequestDTO req, 
             Action<Request<ResolveResultDTO<DataType>>> callback = null)
         {
-            var result = GetStoredEntityAsResolveResult(req);
-            var request = new LocalRequest<ResolveResultDTO<DataType>>(result);
-            request.Execute(callback);
-            return request;
+            return this.helper.Resolve(req, callback);
         }
 #endif
+
+        public class Helper {
+            public Helper(HasEntities<DataType> hasEntities) 
+            {
+                this.hasEntities = hasEntities;
+            }
+
+            public ResolveResultDTO<DataType> GetStoredEntityAsResolveResult(ResolveRequestDTO req)
+            {
+                if(string.IsNullOrEmpty(req.key)) {
+                    return ResolveResultDTO<DataType>.ResolveError(
+                        req, "null or empty key"
+                    );
+                }
+                var store = Services.Require<HasEntities<DataType>>();
+                Entity<DataType> entity;
+                if (!store.GetEntity(req.key, out entity) || !entity.status.hasResolved)
+                {
+                    return string.IsNullOrEmpty(entity.status.resolveError) ?
+                                ResolveResultDTO<DataType>.ResolveNotFound(req) :
+                                ResolveResultDTO<DataType>.ResolveError(
+                                    req, entity.status.resolveError
+                                    );
+                }
+                var status = entity.status;
+                return ResolveResultDTO<DataType>.ResolveSucceeded(
+                    req, entity.id, entity.data, status.maxAgeSecs, status.timestamp
+                );
+            }
+
+    #if NET_4_6
+            /// <summary>
+            /// Wraps call to ResolveAsync in a request
+            /// </summary>
+            public Request<ResolveResultDTO<DataType>> Resolve(
+                ResolveRequestDTO req, 
+                Action<Request<ResolveResultDTO<DataType>>> callback = null
+            )
+            {
+                var r = new TaskRequest<ResolveResultDTO<DataType>>(ResolveAsync(req));
+                r.Execute(callback);
+                return r;
+            }
+
+    #pragma warning disable 1998
+            public async Task<ResolveResultDTO<DataType>> ResolveAsync(
+                ResolveRequestDTO req
+            )
+    #pragma warning restore 1998
+            {
+                return GetStoredEntityAsResolveResult(req);
+            }
+    #else
+            public Request<ResolveResultDTO<DataType>> Resolve(
+                ResolveRequestDTO req, 
+                Action<Request<ResolveResultDTO<DataType>>> callback = null)
+            {
+                var result = GetStoredEntityAsResolveResult(req);
+                var request = new LocalRequest<ResolveResultDTO<DataType>>(result);
+                request.Execute(callback);
+                return request;
+            }
+#endif
+            private HasEntities<DataType> hasEntities { get; set; }
+        }
+
+        private Helper m_helper;
+        private Helper helper
+        {
+            get
+            {
+                return m_helper
+                    ?? (m_helper = new Helper(
+                            Services.Require<HasEntities<DataType>>()));
+            }
+        }
 
     }
 }

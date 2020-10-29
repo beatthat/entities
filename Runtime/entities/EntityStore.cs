@@ -18,6 +18,7 @@ namespace BeatThat.Entities
         public abstract void GetStoredIds(ICollection<string> ids);
         public abstract int GetStoredIdCount();
         public abstract void GetAllStoredKeys(ICollection<string> keys);
+        public abstract bool GetDataAsObject(string key, out object data);
     }
 
     public class EntityStore<DataType> : EntityStore, HasEntities<DataType>
@@ -31,11 +32,8 @@ namespace BeatThat.Entities
             Bind<ResolvedMultipleDTO<DataType>>(Entity<DataType>.RESOLVED_MULTIPLE, this.OnResolvedMultiple);
             Bind<ResolveRequestDTO>(Entity<DataType>.RESOLVE_STARTED, this.OnResolveStarted);
             Bind<ResolveFailedDTO>(Entity<DataType>.RESOLVE_FAILED, this.OnResolveFailed);
-
-
             Bind<StoreEntityDTO<DataType>>(Entity<DataType>.STORE, this.OnStore);
             Bind<StoreMultipleDTO<DataType>>(Entity<DataType>.STORE_MULTIPLE, this.OnStoreMultiple);
-
             Bind<bool>(Entity<DataType>.UNLOAD_ALL_REQUESTED, this.Clear);
             BindEntityStore();
 		}
@@ -47,10 +45,8 @@ namespace BeatThat.Entities
             if(sendNotifications) {
                 Entity<DataType>.WillUnloadAll();
             }
-
             m_idByKey.Clear();
             m_entitiesById.Clear();
-
             if(sendNotifications) {
                 Entity<DataType>.DidUnloadAll();
             }
@@ -151,6 +147,19 @@ namespace BeatThat.Entities
             data = entity.data;
             return true;
 		}
+
+        override public bool GetDataAsObject(string key, out object data)
+        {
+            DataType d;
+            if(GetData(key, out d)) {
+                data = d;
+                return true;
+            }
+            else {
+                data = null;
+                return false;
+            }
+        }
 
         public bool GetEntity(string key, out Entity<DataType> d)
 		{

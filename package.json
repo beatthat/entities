@@ -46,14 +46,14 @@
     "readmefiles"
   ],
   "dependencies": {
-    "bindings": "github:beatthat/bindings#semver:^1.0.0",
-    "collections-ext": "github:beatthat/collections-ext#semver:^1.0.0",
-    "commands": "github:beatthat/commands#semver:^1.0.0",
-    "dependency-injection": "github:beatthat/dependency-injection#semver:^1.0.0",
-    "notifications": "github:beatthat/notifications#semver:^1.0.0",
+    "bindings": "github:beatthat/bindings#semver:^1.0.3",
+    "collections-ext": "github:beatthat/collections-ext#semver:^1.4.0",
+    "commands": "github:beatthat/commands#semver:^1.0.2",
+    "dependency-injection": "github:beatthat/dependency-injection#semver:^1.0.4",
+    "notifications": "github:beatthat/notifications#semver:^1.1.0",
     "path": "^0.12.7",
-    "requests": "github:beatthat/requests#semver:^1.0.0",
-    "services": "github:beatthat/services#semver:^1.0.0",
+    "requests": "github:beatthat/requests#semver:^2.0.0",
+    "services": "github:beatthat/services#semver:^1.2.0",
     "unity-npm-utils": "github:beatthat/unity-npm-utils#semver:^1.0.0"
   },
   "devDependencies": {}

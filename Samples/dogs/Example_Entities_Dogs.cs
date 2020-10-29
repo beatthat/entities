@@ -14,7 +14,6 @@ namespace BeatThat.Entities.Examples
                                                                         // you can call InjectDependencies.On(this) from Start or similar.
 
     {
-
         [Inject] HasEntities<DogData> dogs; // this will be an injected reference 
                                             // to our global DogDataStore
 
@@ -33,10 +32,8 @@ namespace BeatThat.Entities.Examples
             // where you don't want or need them.
             ServiceLoader.onAfterSetServiceRegistratonsStatic = (serviceLoader) =>
             {
-                serviceLoader.Register<DogDataResolver>();
-                serviceLoader.Register<EntityResolver<DogData>, DogDataResolver>();
-                serviceLoader.Register<ResolveDogDataCmd>();
                 serviceLoader.Register<DogDataStore>();
+                serviceLoader.Register<EntityResolver<DogData>, DogDataStore>();
                 serviceLoader.Register<HasEntities<DogData>, DogDataStore>();
                 serviceLoader.Register<HasEntityData<DogData>, DogDataStore>();
             };
@@ -51,7 +48,6 @@ namespace BeatThat.Entities.Examples
                 // Since we're using dependency-injection 
                 // and this component is really like startup for the whole app,
                 // safer to init services and then proceed when done.
-
                 InitDogItems();
             });
         }
@@ -60,16 +56,13 @@ namespace BeatThat.Entities.Examples
         {
             var items = new List<DogDataItemDisplay>();
             items.Add(m_dogItemProto);
-
             for (var i = 1; i < DogAPI.IDS.Length; i++) {
                 var cur = Instantiate(m_dogItemProto);
                 cur.transform.SetParent(m_dogItemProto.transform.parent);
                 cur.transform.SetSiblingIndex(items[i - 1].transform.GetSiblingIndex() + 1);
                 items.Add(cur);
             }
-
             m_dogItems = items.ToArray();
-
             for (var i = 0; i < DogAPI.IDS.Length; i++)
             {
                 m_dogItems[i].Init(DogAPI.IDS[i], this.dogs);

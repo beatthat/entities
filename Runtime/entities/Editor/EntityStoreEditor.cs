@@ -78,11 +78,11 @@ namespace BeatThat.Entities
 
             EditorGUI.indentLevel++;
 
-            var model = this.target as EntityStore;
+            var entityStore = this.target as EntityStore;
 
             using (var storedIds = ListPool<string>.Get())
             {
-                model.GetAllStoredKeys(storedIds);
+                entityStore.GetAllStoredKeys(storedIds);
 
                 var defaultColor = GUI.color;
                 var defaultContentColor = GUI.contentColor;
@@ -93,7 +93,7 @@ namespace BeatThat.Entities
                 {
                     var foldoutStyle = EditorStyles.foldout;
                     ResolveStatus loadStatus;
-                    if (!model.GetResolveStatus(id, out loadStatus))
+                    if (!entityStore.GetResolveStatus(id, out loadStatus))
                     {
                         continue;
                     }
@@ -177,6 +177,17 @@ namespace BeatThat.Entities
                                                            EditorStyles.wordWrappedLabel
                                                           );
                             }
+                        }
+                    }
+                    else {
+                        try {
+                            object data;
+                            if(entityStore.GetDataAsObject(id, out data)) {
+                                EditorGUILayout.TextArea(JsonUtility.ToJson(data, true));
+                            }
+                        }
+                        catch(Exception e) {
+                            Debug.LogError(e);
                         }
                     }
 
